@@ -89,29 +89,9 @@ install_dependencies() {
     fi
 
     echo -e "${YELLOW}🔄 升级pip...${NC}"
-    pip install --upgrade pip
-
+    pip3 install --upgrade pip3
     echo -e "${YELLOW}🔄 安装依赖包...${NC}"
-
-    # 首先尝试兼容版本的requirements
-    if [[ -f "requirements-compatible.txt" ]]; then
-        echo -e "${YELLOW}📋 使用兼容版本依赖文件...${NC}"
-        if pip install -r requirements-compatible.txt; then
-            echo -e "${GREEN}✅ 兼容版本依赖安装成功${NC}"
-        else
-            echo -e "${YELLOW}⚠️ 兼容版本安装失败，尝试原版本...${NC}"
-            pip install -r requirements.txt
-        fi
-    else
-        # 如果没有兼容版本，尝试原版本
-        if pip install -r requirements.txt; then
-            echo -e "${GREEN}✅ 依赖安装成功${NC}"
-        else
-            echo -e "${RED}❌ 依赖安装失败，尝试使用国内镜像...${NC}"
-            pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
-        fi
-    fi
-
+    sh fix-dependencies.sh
     echo -e "${GREEN}✅ 依赖安装完成${NC}"
 }
 
