@@ -10,8 +10,8 @@ from passlib.context import CryptContext
 from .config import settings
 
 
-# 密码哈希上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 密码哈希上下文 - 临时使用pbkdf2_sha256来避免bcrypt版本问题
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 
 def create_access_token(

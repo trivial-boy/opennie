@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from ...core.database import get_db
+from ...core.config import settings
 from ...core.security import (
     create_access_token,
     create_refresh_token,

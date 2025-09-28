@@ -2,10 +2,36 @@
 
 ## 基础信息
 
-- **Base URL**: `https://api.bookkeepingapp.com/api/v1`
+- **Base URL**: `http://192.168.0.173:8000/api/v1` (开发环境)
 - **认证方式**: Bearer Token (JWT)
 - **Content-Type**: `application/json`
 - **时区**: UTC
+
+## 环境配置
+
+### 服务器配置
+- **开发环境**: 配置文件位于 `backend/.env.development`
+- **服务器地址**: 由 `SERVER_HOST` 和 `SERVER_PORT` 环境变量控制
+- **当前配置**: `SERVER_HOST=0.0.0.0`, `SERVER_PORT=8000`
+- **局域网访问**: 服务器绑定到 `0.0.0.0`，支持局域网内其他设备访问
+
+### 邮件验证配置
+- **功能开关**: `EMAIL_VERIFICATION_ENABLED` (当前为 `false`)
+- **当前状态**: 邮件验证功能已禁用，用户注册后可直接登录
+- **Token过期时间**: `ACCESS_TOKEN_EXPIRE_MINUTES=30` (30分钟)
+
+### 启动服务
+```bash
+cd backend
+python run.py
+```
+
+### 测试API
+```bash
+# 运行认证测试
+cd backend
+python -m pytest tests/test_auth.py -v
+```
 
 ## 通用响应格式
 
@@ -27,12 +53,14 @@
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "输入数据不合法",
-    "details": {
-      "field": "email",
-      "reason": "邮箱格式不正确"
-    }
+    "details": [
+      {
+        "field": "email",
+        "reason": "邮箱格式不正确"
+      }
+    ]
   },
-  "timestamp": "2024-01-01T00:00:00Z"
+  "timestamp": "2024-01-01T00:00:00.000Z"
 }
 ```
 
@@ -93,17 +121,20 @@ POST /auth/register
 {
   "success": true,
   "data": {
-    "user": {
-      "id": "uuid",
-      "username": "john_doe",
-      "email": "john@example.com",
-      "email_verified": false,
-      "avatar_url": null,
-      "created_at": "2024-01-01T00:00:00Z"
-    },
-    "message": "注册成功，验证邮件已发送到您的邮箱，请查收并验证邮箱后登录"
-  }
+    "id": "uuid",
+    "username": "john_doe",
+    "email": "john@example.com",
+    "email_verified": false,
+    "avatar_url": null,
+    "created_at": "2024-01-01T00:00:00.000Z"
+  },
+  "message": "注册成功，验证邮件已发送到您的邮箱，请查收并验证邮箱后登录",
+  "code": 200,
+  "timestamp": "2024-01-01T00:00:00.000Z"
 }
+```
+
+> **注意**: 如果邮件验证功能被禁用(`EMAIL_VERIFICATION_ENABLED=false`)，用户注册后可直接登录，`email_verified`字段将为`true`。
 ```
 
 ### 1.2 发送邮箱验证码
@@ -126,7 +157,10 @@ POST /auth/send-verification-email
     "message": "验证邮件已发送",
     "email": "john@example.com",
     "expires_in": 1800
-  }
+  },
+  "message": "操作成功",
+  "code": 200,
+  "timestamp": "2024-01-01T00:00:00.000Z"
 }
 ```
 
@@ -135,7 +169,7 @@ POST /auth/send-verification-email
 POST /auth/verify-email
 ```
 
-**请求体:**
+**请求体 (通过验证码):**
 ```json
 {
   "email": "john@example.com",
@@ -143,9 +177,11 @@ POST /auth/verify-email
 }
 ```
 
-**或者通过URL验证:**
-```http
-GET /auth/verify-email?token=verification_token
+**或者 (通过令牌):**
+```json
+{
+  "verification_token": "verification_token_from_email"
+}
 ```
 
 **响应:**
@@ -154,13 +190,11 @@ GET /auth/verify-email?token=verification_token
   "success": true,
   "data": {
     "message": "邮箱验证成功",
-    "user": {
-      "id": "uuid",
-      "email": "john@example.com",
-      "email_verified": true,
-      "verified_at": "2024-01-01T00:10:00Z"
-    }
-  }
+    "email": "john@example.com"
+  },
+  "message": "操作成功",
+  "code": 200,
+  "timestamp": "2024-01-01T00:00:00.000Z"
 }
 ```
 
@@ -188,27 +222,27 @@ POST /auth/login
       "email": "john@example.com",
       "email_verified": true,
       "avatar_url": null,
-      "created_at": "2024-01-01T00:00:00Z"
+      "created_at": "2024-01-01T00:00:00.000Z"
     },
     "access_token": "eyJhbGciOiJIUzI1NiIs...",
     "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
-    "expires_in": 3600
-  }
+    "expires_in": 1800
+  },
+  "message": "操作成功",
+  "code": 200,
+  "timestamp": "2024-01-01T00:00:00.000Z"
 }
+```
+
+> **注意**: 
+> - `expires_in` 值由配置文件中的 `ACCESS_TOKEN_EXPIRE_MINUTES` 决定(默认30分钟=1800秒)
+> - 如果邮件验证功能启用但用户邮箱未验证，将返回422错误
 ```
 
 **错误响应 (邮箱未验证):**
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "EMAIL_NOT_VERIFIED",
-    "message": "邮箱未验证，请先验证邮箱后登录",
-    "details": {
-      "email": "john@example.com",
-      "can_resend_verification": true
-    }
-  }
+  "detail": "邮箱未验证，请先验证邮箱后登录"
 }
 ```
 
@@ -228,8 +262,11 @@ Authorization: Bearer <refresh_token>
   "success": true,
   "data": {
     "access_token": "eyJhbGciOiJIUzI1NiIs...",
-    "expires_in": 3600
-  }
+    "expires_in": 1800
+  },
+  "message": "操作成功",
+  "code": 200,
+  "timestamp": "2024-01-01T00:00:00.000Z"
 }
 ```
 
@@ -243,76 +280,56 @@ POST /auth/logout
 Authorization: Bearer <access_token>
 ```
 
-### 1.7 获取当前用户信息
-```http
-GET /auth/me
-```
-
 **响应:**
 ```json
 {
   "success": true,
   "data": {
-    "id": "uuid",
-    "username": "john_doe",
-    "email": "john@example.com",
-    "email_verified": true,
-    "avatar_url": "https://example.com/avatar.jpg",
-    "created_at": "2024-01-01T00:00:00Z"
-  }
-}
-```
-
-### 1.8 忘记密码
-```http
-POST /auth/forgot-password
-```
-
-**请求体:**
-```json
-{
-  "email": "john@example.com"
-}
-```
-
-**响应:**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "密码重置邮件已发送",
-    "email": "john@example.com",
-    "expires_in": 1800
-  }
-}
-```
-
-### 1.9 重置密码
-```http
-POST /auth/reset-password
-```
-
-**请求体:**
-```json
-{
-  "token": "reset_token_from_email",
-  "new_password": "newSecurePassword123"
-}
-```
-
-**响应:**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "密码重置成功，请使用新密码登录"
-  }
+    "message": "登出成功"
+  },
+  "message": "操作成功",
+  "code": 200,
+  "timestamp": "2024-01-01T00:00:00.000Z"
 }
 ```
 
 ---
 
+## 待实现的功能
+
+以下功能在API设计中规划但尚未实现：
+
+### 获取当前用户信息
+```http
+GET /auth/me
+```
+
+### 忘记密码
+```http
+POST /auth/forgot-password
+```
+
+### 重置密码
+```http
+POST /auth/reset-password
+```
+
+---
+
 ## 2. 账本管理 (Accounts)
+
+> **⚠️ 重要提示**: 以下所有账本管理、账单管理、资产管理、分类管理、预算管理和报表统计功能仅为API设计文档，**尚未实现**。
+> 
+> **当前已实现的功能仅包括**:
+> - ✅ 用户注册 (`POST /auth/register`)
+> - ✅ 用户登录 (`POST /auth/login`) 
+> - ✅ 邮箱验证 (`POST /auth/send-verification-email`, `POST /auth/verify-email`)
+> - ✅ 刷新令牌 (`POST /auth/refresh`)
+> - ✅ 用户登出 (`POST /auth/logout`)
+>
+> **开发进度**: 目前项目处于基础认证系统开发完成阶段，其他业务功能模块待后续开发。
+
+## 2. 账本管理 (Accounts) [待实现]
 
 ### 2.1 获取账本列表
 ```http

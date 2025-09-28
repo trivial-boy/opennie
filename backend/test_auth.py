@@ -8,9 +8,16 @@ import aiohttp
 import json
 import random
 import string
+import sys
+import os
 from datetime import datetime
 
-BASE_URL = "http://localhost:8000"
+# 添加项目路径以便导入配置
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from app.core.config import settings
+
+BASE_URL = f"http://localhost:{settings.SERVER_PORT}"
 API_BASE = f"{BASE_URL}/api/v1"
 
 

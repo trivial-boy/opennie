@@ -29,6 +29,10 @@ class Settings:
         self.ENVIRONMENT = Environment(os.getenv("ENVIRONMENT", "development"))
         self.DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
+        # 服务器配置
+        self.SERVER_HOST = os.getenv("SERVER_HOST", "0.0.0.0")
+        self.SERVER_PORT = int(os.getenv("SERVER_PORT", "8000"))
+
         # 数据库配置
         self.DATABASE_URL = os.getenv(
             "DATABASE_URL",

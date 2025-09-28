@@ -5,6 +5,7 @@
 import uuid
 import time
 import logging
+import json
 from datetime import datetime
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
@@ -101,8 +102,21 @@ class ExceptionHandlingMiddleware(BaseHTTPMiddleware):
                 timestamp=datetime.utcnow(),
             )
 
-            # 使用dict()方法确保datetime对象正确序列化
-            return JSONResponse(status_code=500, content=error_response.dict())
+            # 自定义JSON序列化来处理datetime
+            def serialize_datetime(obj):
+                if isinstance(obj, datetime):
+                    return obj.isoformat()
+                return obj
+
+            response_dict = error_response.dict()
+            # 手动处理datetime序列化
+            response_dict["timestamp"] = (
+                response_dict["timestamp"].isoformat()
+                if isinstance(response_dict.get("timestamp"), datetime)
+                else response_dict.get("timestamp")
+            )
+
+            return JSONResponse(status_code=500, content=response_dict)
 
     def _get_status_code_for_exception(self, exception: BaseAppException) -> int:
         """根据异常类型获取HTTP状态码"""
