@@ -52,56 +52,85 @@ if [[ -f "$REQUIREMENTS_FILE" ]]; then
 
     # 先安装基础依赖，避免版本冲突
     echo "📦 安装基础依赖..."
-    pip install wheel setuptools
+    try_install_with_sources "wheel"
+    try_install_with_sources "setuptools"
 
-    # 安装requirements.txt中的所有依赖
-    echo "📦 安装requirements.txt中的依赖..."
-    pip install -r "$REQUIREMENTS_FILE"
+    # 尝试安装requirements.txt中的所有依赖
+    echo "📦 尝试安装requirements.txt..."
+    local success=false
+    for source in "${PYPI_SOURCES[@]}"; do
+        echo "🔄 尝试从 $source 安装requirements.txt"
+        if pip install --trusted-host mirrors.cloud.aliyuncs.com --trusted-host pypi.tuna.tsinghua.edu.cn --trusted-host pypi.douban.com -i "$source" -r "$REQUIREMENTS_FILE"; then
+            echo "✅ 成功从 $source 安装requirements.txt"
+            success=true
+            break
+        else
+            echo "❌ 从 $source 安装requirements.txt失败，尝试下一个源..."
+        fi
+    done
 
-    echo "✅ requirements.txt依赖安装完成"
+    if [[ "$success" == true ]]; then
+        echo "✅ requirements.txt依赖安装完成"
+    else
+        echo "⚠️ requirements.txt安装失败，尝试安装兼容版本的核心依赖..."
+
+        # 安装兼容版本的核心依赖
+        try_install_with_sources "fastapi>=0.70.0"
+        try_install_with_sources "uvicorn[standard]>=0.20.0"
+        try_install_with_sources "sqlalchemy[asyncio]==1.4.48"
+        try_install_with_sources "asyncpg>=0.25.0"
+        try_install_with_sources "alembic>=1.10.0"
+        try_install_with_sources "redis>=4.0.0"
+        try_install_with_sources "aioredis>=2.0.0"
+        try_install_with_sources "python-jose[cryptography]>=3.0.0"
+        try_install_with_sources "passlib[bcrypt]>=1.7.0"
+        try_install_with_sources "python-multipart>=0.0.5"
+        try_install_with_sources "python-dotenv>=1.0.0"
+        try_install_with_sources "pydantic>=1.10.0"
+        try_install_with_sources "httpx>=0.23.0"
+    fi
 else
     echo "⚠️ 未找到requirements.txt，安装核心依赖..."
 
     # 安装核心依赖（备用方案）
     echo "📦 安装核心依赖..."
 
-    # Web框架
-    pip install "fastapi==0.104.1"
-    pip install "uvicorn[standard]==0.24.0"
+    # Web框架 - 使用兼容版本
+    try_install_with_sources "fastapi>=0.70.0"
+    try_install_with_sources "uvicorn[standard]>=0.20.0"
 
     # 数据库
-    pip install "sqlalchemy[asyncio]==1.4.48"
-    pip install "asyncpg==0.28.0"
-    pip install "alembic==1.12.1"
+    try_install_with_sources "sqlalchemy[asyncio]==1.4.48"
+    try_install_with_sources "asyncpg>=0.25.0"
+    try_install_with_sources "alembic>=1.10.0"
 
     # 缓存
-    pip install "redis==5.0.1"
-    pip install "aioredis==2.0.1"
+    try_install_with_sources "redis>=4.0.0"
+    try_install_with_sources "aioredis>=2.0.0"
 
     # 认证和安全
-    pip install "python-jose[cryptography]==3.3.0"
-    pip install "passlib[bcrypt]==1.7.4"
-    pip install "python-multipart==0.0.6"
+    try_install_with_sources "python-jose[cryptography]>=3.0.0"
+    try_install_with_sources "passlib[bcrypt]>=1.7.0"
+    try_install_with_sources "python-multipart>=0.0.5"
 
     # 邮件和模板
-    pip install "aiosmtplib==3.0.1"
-    pip install "jinja2==3.1.2"
+    try_install_with_sources "aiosmtplib>=3.0.0"
+    try_install_with_sources "jinja2>=3.0.0"
 
     # 工具库
-    pip install "python-dotenv==1.0.0"
-    pip install "pydantic==2.11.9"
-    pip install "pydantic-settings==2.11.0"
-    pip install "httpx==0.25.2"
-    pip install "loguru==0.7.2"
-    pip install "python-dateutil==2.8.2"
-    pip install "pytz==2023.3"
+    try_install_with_sources "python-dotenv>=1.0.0"
+    try_install_with_sources "pydantic>=1.10.0"
+    try_install_with_sources "httpx>=0.23.0"
+    try_install_with_sources "loguru>=0.7.0"
+    try_install_with_sources "python-dateutil>=2.8.0"
+    try_install_with_sources "pytz>=2022.1"
 
     # 文件处理
-    pip install "pillow==10.1.0"
-    pip install "python-magic==0.4.27"
+    try_install_with_sources "pillow>=10.0.0"
+    try_install_with_sources "python-magic>=0.4.0"
 
     # API文档
-    pip install "fastapi-users==12.1.2"
+    try_install_with_sources "fastapi-users>=12.0.0"
 
     echo "✅ 核心依赖安装完成"
 fi
