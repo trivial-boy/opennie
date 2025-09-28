@@ -56,20 +56,9 @@ setup_firewall() {
         fi
     fi
 
-    # 配置系统防火墙
-    if command -v ufw &> /dev/null; then
-        sudo ufw allow 22
-        sudo ufw allow 80
-        sudo ufw allow 443
-        sudo ufw --force enable
-        echo -e "${GREEN}✅ UFW 防火墙配置完成${NC}"
-    elif command -v firewall-cmd &> /dev/null; then
-        sudo firewall-cmd --permanent --add-port=22/tcp
-        sudo firewall-cmd --permanent --add-port=80/tcp
-        sudo firewall-cmd --permanent --add-port=443/tcp
-        sudo firewall-cmd --reload
-        echo -e "${GREEN}✅ firewalld 防火墙配置完成${NC}"
-    fi
+    # 跳过系统防火墙配置，使用阿里云安全组
+    echo -e "${GREEN}✅ 跳过系统防火墙配置，推荐使用阿里云安全组管理网络访问${NC}"
+    echo -e "${YELLOW}💡 提示：阿里云安全组比系统防火墙更安全和灵活${NC}"
 }
 
 # 生成SSL证书 (使用Let's Encrypt)
