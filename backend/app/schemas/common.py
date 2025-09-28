@@ -3,7 +3,7 @@
 """
 
 from typing import Generic, TypeVar, List, Optional, Any, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 
@@ -13,6 +13,8 @@ T = TypeVar("T")
 class ResponseModel(BaseModel, Generic[T]):
     """统一成功响应模型"""
 
+    model_config = ConfigDict(json_encoders={datetime: lambda v: v.isoformat() + "Z"})
+
     success: bool = Field(True, description="请求是否成功")
     data: Optional[T] = Field(None, description="响应数据")
     message: str = Field("操作成功", description="响应消息")
@@ -20,9 +22,6 @@ class ResponseModel(BaseModel, Generic[T]):
     timestamp: datetime = Field(
         default_factory=datetime.utcnow, description="响应时间戳"
     )
-
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat() + "Z"}
 
 
 class PaginationMeta(BaseModel):

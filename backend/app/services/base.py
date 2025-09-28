@@ -111,13 +111,13 @@ class BaseService(
         await self._post_create_hook(db_obj)
 
         # 5. 返回结果
-        return self.read_schema.from_orm(db_obj)
+        return self.read_schema.model_validate(db_obj)
 
     async def get(self, id: UUID) -> Optional[ReadSchemaType]:
         """获取对象"""
         db_obj = await self.repository.get(id)
         if db_obj:
-            return self.read_schema.from_orm(db_obj)
+            return self.read_schema.model_validate(db_obj)
         return None
 
     async def get_multi(
@@ -125,7 +125,7 @@ class BaseService(
     ) -> List[ReadSchemaType]:
         """获取多个对象"""
         db_objs = await self.repository.get_multi(skip=skip, limit=limit, **filters)
-        return [self.read_schema.from_orm(obj) for obj in db_objs]
+        return [self.read_schema.model_validate(obj) for obj in db_objs]
 
     async def update(
         self, id: UUID, obj_in: UpdateSchemaType
@@ -151,7 +151,7 @@ class BaseService(
         await self._post_update_hook(updated_obj, existing_obj)
 
         # 6. 返回结果
-        return self.read_schema.from_orm(updated_obj)
+        return self.read_schema.model_validate(updated_obj)
 
     async def delete(self, id: UUID) -> bool:
         """删除对象 - 模板方法"""

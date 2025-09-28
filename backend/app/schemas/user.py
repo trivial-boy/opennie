@@ -3,7 +3,7 @@
 """
 
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
 import uuid
 
@@ -32,15 +32,13 @@ class UserUpdate(BaseModel):
 class UserRead(UserBase):
     """用户读取模式"""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     email_verified: bool
     avatar_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
-        orm_mode = True
 
 
 class UserInDB(UserRead):

@@ -8,7 +8,9 @@ import sys
 import os
 
 # 添加项目路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 from app.core.security import get_password_hash, verify_password
 from app.schemas.user import UserRead
@@ -75,14 +77,14 @@ def test_user_schema(user):
 
     try:
         # 测试from_orm
-        user_read = UserRead.from_orm(user)
+        user_read = UserRead.model_validate(user)
         print(f"✅ UserRead.from_orm 成功")
         print(f"   用户名: {user_read.username}")
         print(f"   邮箱: {user_read.email}")
         print(f"   ID: {user_read.id}")
 
         # 测试dict序列化
-        user_dict = user_read.dict()
+        user_dict = user_read.model_dump()
         print(f"✅ UserRead.dict() 成功")
         print(f"   字典键: {list(user_dict.keys())}")
 
@@ -112,7 +114,7 @@ def test_response_model():
             updated_at=datetime.utcnow(),
         )
 
-        user_read = UserRead.from_orm(user)
+        user_read = UserRead.model_validate(user)
 
         # 创建响应模型
         response = ResponseModel(data=user_read, message="注册成功")
@@ -122,7 +124,7 @@ def test_response_model():
         print(f"   成功状态: {response.success}")
 
         # 测试dict序列化
-        response_dict = response.dict()
+        response_dict = response.model_dump()
         print(f"✅ ResponseModel.dict() 成功")
 
         return True

@@ -27,6 +27,9 @@ from ...models.user import User
 from ...models.email_verification import EmailVerification
 from sqlalchemy import select
 from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 security = HTTPBearer()
@@ -66,6 +69,20 @@ async def register(user_data: RegisterRequest, db: AsyncSession = Depends(get_db
     await db.commit()
     await db.refresh(user)
 
+    # 为新用户创建默认账本和分类
+    from ...services.user_defaults import user_defaults_service
+
+    try:
+        print(f"🧪 Starting to create default data for user {user.id}")
+        await user_defaults_service.setup_user_defaults(db, user.id)
+        print(f"✅ Successfully created default data for user {user.id}")
+    except Exception as e:
+        # 记录错误但不影响注册流程
+        print(f"❌ Warning: Failed to create default data for user {user.id}: {e}")
+        import traceback
+
+        traceback.print_exc()
+
     # 根据配置决定是否发送验证邮件
     if settings.EMAIL_VERIFICATION_ENABLED:
         # 发送验证邮件
@@ -86,7 +103,7 @@ async def register(user_data: RegisterRequest, db: AsyncSession = Depends(get_db
         message = "注册成功，可以直接登录"
 
     return ResponseModel(
-        data=UserRead.from_orm(user),
+        data=UserRead.model_validate(user),
         message=message,
     )
 
@@ -183,7 +200,7 @@ async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
 
     return ResponseModel(
         data=LoginResponse(
-            user=UserRead.from_orm(user),
+            user=UserRead.model_validate(user),
             access_token=access_token,
             refresh_token=refresh_token,
             expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,

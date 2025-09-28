@@ -3,7 +3,7 @@
 """
 
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime, date
 from decimal import Decimal
 import uuid
@@ -40,13 +40,12 @@ class BudgetUpdate(BaseModel):
 class BudgetRead(BudgetBase):
     """预算读取模式"""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class BudgetCategoryCreate(BaseModel):
@@ -59,6 +58,8 @@ class BudgetCategoryCreate(BaseModel):
 class BudgetCategoryRead(BaseModel):
     """预算分类读取模式"""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     budget_id: uuid.UUID
     category_id: uuid.UUID
@@ -67,9 +68,6 @@ class BudgetCategoryRead(BaseModel):
     category_name: Optional[str] = None
     remaining_amount: Decimal = Decimal("0.00")
     usage_percentage: float = 0.0
-
-    class Config:
-        from_attributes = True
 
 
 class BudgetWithCategories(BudgetRead):

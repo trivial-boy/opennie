@@ -18,7 +18,11 @@ class Bill(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     account_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    to_account_id = Column(
+        UUID(as_uuid=True), nullable=True, index=True
+    )  # 转账目标账户
     asset_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    to_asset_id = Column(UUID(as_uuid=True), nullable=True, index=True)  # 转账目标资产
     category_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     amount = Column(Numeric(15, 2), nullable=False, index=True)
     currency = Column(String(3), default="CNY")

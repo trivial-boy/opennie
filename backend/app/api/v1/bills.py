@@ -49,12 +49,42 @@ async def create_bill(
             status_code=status.HTTP_404_NOT_FOUND, detail="账本不存在或无权限"
         )
 
-    bill = Bill(user_id=current_user.id, **bill_data.dict())
+    # 验证转账类型的特殊逻辑
+    if bill_data.type == "transfer":
+        if not bill_data.to_account_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="转账需要指定目标账户"
+            )
+
+        # 验证目标账户权限
+        stmt = select(Account).where(
+            (Account.id == bill_data.to_account_id)
+            & (Account.user_id == current_user.id)
+        )
+        to_account = await db.execute(stmt)
+        if not to_account.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="目标账户不存在或无权限"
+            )
+
+        # 验证目标资产权限（如果指定了的话）
+        if bill_data.to_asset_id:
+            stmt = select(Asset).where(
+                (Asset.id == bill_data.to_asset_id) & (Asset.user_id == current_user.id)
+            )
+            to_asset = await db.execute(stmt)
+            if not to_asset.scalar_one_or_none():
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="目标资产不存在或无权限",
+                )
+
+    bill = Bill(user_id=current_user.id, **bill_data.model_dump())
     db.add(bill)
     await db.commit()
     await db.refresh(bill)
 
-    return ResponseModel(data=BillRead.from_orm(bill), message="账单创建成功")
+    return ResponseModel(data=BillRead.model_validate(bill), message="账单创建成功")
 
 
 @router.get(
@@ -112,7 +142,7 @@ async def get_bills(
     # 构建响应数据
     bills_with_details = []
     for bill, account, asset, category in bills_data:
-        bill_dict = BillRead.from_orm(bill).dict()
+        bill_dict = BillRead.model_validate(bill).model_dump()
         bill_dict.update(
             {
                 "account": {"id": str(account.id), "name": account.name},
@@ -167,7 +197,7 @@ async def get_bill(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="账单不存在")
 
     bill, account, asset, category = bill_data
-    bill_dict = BillRead.from_orm(bill).dict()
+    bill_dict = BillRead.model_validate(bill).model_dump()
     bill_dict.update(
         {
             "account": {"id": str(account.id), "name": account.name},
@@ -199,15 +229,49 @@ async def update_bill(
     if not bill:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="账单不存在")
 
+    # 获取更新数据
+    update_data = bill_update.model_dump(exclude_unset=True)
+
+    # 如果类型被更新为转账，验证转账字段
+    bill_type = update_data.get("type", bill.type)
+    if bill_type == "transfer":
+        to_account_id = update_data.get("to_account_id", bill.to_account_id)
+        if not to_account_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="转账需要指定目标账户"
+            )
+
+        # 验证目标账户权限
+        stmt = select(Account).where(
+            (Account.id == to_account_id) & (Account.user_id == current_user.id)
+        )
+        to_account = await db.execute(stmt)
+        if not to_account.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="目标账户不存在或无权限"
+            )
+
+        # 验证目标资产权限（如果指定了的话）
+        to_asset_id = update_data.get("to_asset_id", bill.to_asset_id)
+        if to_asset_id:
+            stmt = select(Asset).where(
+                (Asset.id == to_asset_id) & (Asset.user_id == current_user.id)
+            )
+            to_asset = await db.execute(stmt)
+            if not to_asset.scalar_one_or_none():
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="目标资产不存在或无权限",
+                )
+
     # 更新账单
-    update_data = bill_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(bill, field, value)
 
     await db.commit()
     await db.refresh(bill)
 
-    return ResponseModel(data=BillRead.from_orm(bill), message="账单更新成功")
+    return ResponseModel(data=BillRead.model_validate(bill), message="账单更新成功")
 
 
 @router.delete("/{bill_id}", response_model=ResponseModel[dict], summary="删除账单")

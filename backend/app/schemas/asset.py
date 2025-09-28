@@ -3,7 +3,7 @@
 """
 
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from decimal import Decimal
 import uuid
@@ -41,13 +41,12 @@ class AssetUpdate(BaseModel):
 class AssetRead(AssetBase):
     """资产读取模式"""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class AssetOverview(BaseModel):

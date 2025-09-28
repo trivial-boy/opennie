@@ -295,14 +295,82 @@ Authorization: Bearer <access_token>
 
 ---
 
+---
+
+## 2. 用户管理 (Users)
+
+### 2.1 获取当前用户信息
+```http
+GET /users/me
+```
+
+**请求头:**
+```
+Authorization: Bearer <access_token>
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "username": "john_doe",
+    "email": "john@example.com",
+    "email_verified": true,
+    "avatar_url": null,
+    "created_at": "2024-01-01T00:00:00.000Z"
+  },
+  "message": "操作成功",
+  "code": 200,
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### 2.2 更新当前用户信息
+```http
+PUT /users/me
+```
+
+**请求头:**
+```
+Authorization: Bearer <access_token>
+```
+
+**请求体:**
+```json
+{
+  "username": "new_username",
+  "email": "new@example.com",
+  "avatar_url": "https://example.com/avatar.jpg"
+}
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "username": "new_username",
+    "email": "new@example.com",
+    "email_verified": false,
+    "avatar_url": "https://example.com/avatar.jpg",
+    "created_at": "2024-01-01T00:00:00.000Z"
+  },
+  "message": "用户信息更新成功",
+  "code": 200,
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+> **注意**: 如果更改邮箱地址，`email_verified` 将重置为 `false`，需要重新验证邮箱。
+
+---
+
 ## 待实现的功能
 
 以下功能在API设计中规划但尚未实现：
-
-### 获取当前用户信息
-```http
-GET /auth/me
-```
 
 ### 忘记密码
 ```http
@@ -316,22 +384,22 @@ POST /auth/reset-password
 
 ---
 
-## 2. 账本管理 (Accounts)
+## 3. 账本管理 (Accounts) ✅
 
 > **✅ 实现状态**: 账本管理功能已完全实现并测试通过！
 > 
 > **当前已实现的功能包括**:
 > - ✅ 用户认证系统 (注册、登录、邮箱验证、令牌管理)
+> - ✅ 用户管理 (获取用户信息、更新用户信息) - **已实现**
 > - ✅ 账本管理 (创建、查询、更新、删除、汇总) - **已实现**
-> - ✅ 账单管理API结构 (创建、查询、更新、删除、详情查看) - **已实现**
-> - ⚠️ 资产管理、分类管理 - 需要先实现才能完整测试账单功能
+> - ✅ 账单管理 (创建、查询、更新、删除、详情查看) - **已实现**
+> - ✅ 资产管理 (创建、查询、更新、删除、总览) - **已实现**
+> - ✅ 分类管理 (创建、查询、更新、删除、层级结构) - **已实现**
 > - ⏳ 预算管理、报表统计 - 待后续开发
 >
-> **开发进度**: 核心记账功能（账本+账单）已实现，资产和分类管理需要补充。
+> **开发进度**: 核心记账功能（用户+账本+账单+资产+分类）已全部实现！预算和报表功能待开发。
 
-## 2. 账本管理 (Accounts) ✅
-
-### 2.1 获取账本列表
+### 3.1 获取账本列表
 ```http
 GET /accounts?page=1&size=20
 ```
@@ -364,7 +432,7 @@ GET /accounts?page=1&size=20
 }
 ```
 
-### 2.2 创建账本
+### 3.2 创建账本
 ```http
 POST /accounts
 ```
@@ -380,22 +448,22 @@ POST /accounts
 }
 ```
 
-### 2.3 获取账本详情
+### 3.3 获取账本详情
 ```http
 GET /accounts/{account_id}
 ```
 
-### 2.4 更新账本
+### 3.4 更新账本
 ```http
 PUT /accounts/{account_id}
 ```
 
-### 2.5 删除账本
+### 3.5 删除账本
 ```http
 DELETE /accounts/{account_id}
 ```
 
-### 2.6 获取账本汇总
+### 3.6 获取账本汇总
 ```http
 GET /accounts/{account_id}/summary?start_date=2024-01-01&end_date=2024-01-31
 ```
@@ -419,9 +487,9 @@ GET /accounts/{account_id}/summary?start_date=2024-01-01&end_date=2024-01-31
 
 ---
 
-## 3. 账单管理 (Bills) ✅
+## 4. 账单管理 (Bills) ✅
 
-### 3.1 获取账单列表
+### 4.1 获取账单列表
 ```http
 GET /bills?account_id=uuid&page=1&size=20&start_date=2024-01-01&end_date=2024-01-31&type=expense&category_id=uuid
 ```
@@ -446,9 +514,11 @@ GET /bills?account_id=uuid&page=1&size=20&start_date=2024-01-01&end_date=2024-01
         "account_id": "uuid",
         "asset_id": "uuid",
         "category_id": "uuid",
+        "to_account_id": null,          // 转账目标账户ID
+        "to_asset_id": null,            // 转账目标资产ID
         "amount": 100.00,
         "currency": "CNY",
-        "type": "expense",
+        "type": "expense",              // expense | income | transfer
         "description": "午餐",
         "date": "2024-01-01",
         "created_at": "2024-01-01T12:00:00Z",
@@ -474,96 +544,96 @@ GET /bills?account_id=uuid&page=1&size=20&start_date=2024-01-01&end_date=2024-01
 }
 ```
 
-### 3.2 创建账单
+### 4.2 创建账单
 ```http
 POST /bills
 ```
 
 **请求体:**
+
+普通收支账单：
 ```json
 {
   "account_id": "uuid",
-  "asset_id": "uuid",
+  "asset_id": "uuid", 
   "category_id": "uuid",
   "amount": 100.00,
   "currency": "CNY",
-  "type": "expense",
+  "type": "expense",  // expense | income | transfer
   "description": "午餐",
   "date": "2024-01-01"
 }
 ```
 
-### 3.3 获取账单详情
+**转账账单 (新功能):**
+```json
+{
+  "account_id": "uuid",           // 转出账户ID
+  "to_account_id": "uuid",        // 转入账户ID (必需)
+  "asset_id": "uuid",             // 转出资产ID
+  "to_asset_id": "uuid",          // 转入资产ID (可选)
+  "category_id": "uuid",
+  "amount": 500.00,
+  "currency": "CNY", 
+  "type": "transfer",             // 转账类型
+  "description": "转账到家庭账户",
+  "date": "2024-01-01"
+}
+```
+
+**字段说明:**
+- `to_account_id`: 转账目标账户ID，仅转账交易时必需
+- `to_asset_id`: 转账目标资产ID，可选，用于不同资产间转账
+- 转账时系统会验证转出和转入账户的权限
+
+**转账响应示例:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "f9e54735-69dc-40b1-9231-2b3ad38c46f2",
+    "account_id": "7eca8fae-1fb1-405b-a2bd-465a20afb022",
+    "to_account_id": "0d6b9a7b-050b-4d4c-8e70-230897f298ed",
+    "asset_id": "5dc2c080-202a-4df7-87bf-8e43e5926d04",
+    "to_asset_id": null,
+    "category_id": "16f0f5e7-14ad-4b96-82ff-ed4604141656",
+    "amount": "100.00",
+    "currency": "CNY",
+    "type": "transfer",
+    "description": "测试转账交易",
+    "date": "2025-01-15",
+    "user_id": "93730b67-ed7e-45ce-9bf7-20f67c049a3a",
+    "created_at": "2025-09-28T22:10:28.951771Z",
+    "updated_at": "2025-09-28T22:10:28.951771Z"
+  },
+  "message": "账单创建成功",
+  "code": 200,
+  "timestamp": "2025-09-28T22:10:29.089946Z"
+}
+```
+
+### 4.3 获取账单详情
 ```http
 GET /bills/{bill_id}
 ```
 
-### 3.4 更新账单
+### 4.4 更新账单
 ```http
 PUT /bills/{bill_id}
 ```
 
-### 3.5 删除账单
+### 4.5 删除账单
 ```http
 DELETE /bills/{bill_id}
 ```
 
-### 3.6 按天聚合账单
-```http
-GET /bills/daily-summary?account_id=uuid&start_date=2024-01-01&end_date=2024-01-31
-```
 
-**响应:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "date": "2024-01-01",
-      "total_income": 0.00,
-      "total_expense": 300.00,
-      "net_amount": -300.00,
-      "transaction_count": 3,
-      "bills": [
-        {
-          "id": "uuid",
-          "amount": 100.00,
-          "type": "expense",
-          "description": "午餐",
-          "category": {
-            "name": "餐饮",
-            "icon": "🍽️"
-          }
-        }
-      ]
-    }
-  ]
-}
-```
-
-### 3.7 批量导入账单
-```http
-POST /bills/batch-import
-```
-
-**请求体 (multipart/form-data):**
-```
-file: CSV文件
-account_id: uuid
-```
-
-**CSV格式示例:**
-```csv
-date,amount,type,description,category_name,asset_name
-2024-01-01,100.00,expense,午餐,餐饮,招商银行卡
-2024-01-01,50.00,expense,地铁,交通,现金
-```
 
 ---
 
-## 4. 资产管理 (Assets)
+## 5. 资产管理 (Assets) ✅
 
-### 4.1 获取资产列表
+### 5.1 获取资产列表
 ```http
 GET /assets?type=bank_account&include_in_total=true
 ```
@@ -587,7 +657,7 @@ GET /assets?type=bank_account&include_in_total=true
 }
 ```
 
-### 4.2 创建资产
+### 5.2 创建资产
 ```http
 POST /assets
 ```
@@ -604,22 +674,22 @@ POST /assets
 }
 ```
 
-### 4.3 获取资产详情
+### 5.3 获取资产详情
 ```http
 GET /assets/{asset_id}
 ```
 
-### 4.4 更新资产
+### 5.4 更新资产
 ```http
 PUT /assets/{asset_id}
 ```
 
-### 4.5 删除资产
+### 5.5 删除资产
 ```http
 DELETE /assets/{asset_id}
 ```
 
-### 4.6 获取资产总览
+### 5.6 获取资产总览
 ```http
 GET /assets/overview
 ```
@@ -653,42 +723,18 @@ GET /assets/overview
 }
 ```
 
-### 4.7 获取资产趋势
+### 5.7 获取资产趋势 [待实现]
 ```http
 GET /assets/trends?period=6months&asset_id=uuid
 ```
 
-**响应:**
-```json
-{
-  "success": true,
-  "data": {
-    "period": "6months",
-    "data_points": [
-      {
-        "date": "2024-01-01",
-        "total_assets": 45000.00,
-        "net_worth": 43000.00
-      },
-      {
-        "date": "2024-02-01",
-        "total_assets": 47000.00,
-        "net_worth": 45000.00
-      }
-    ],
-    "growth": {
-      "amount": 5000.00,
-      "percentage": 0.11
-    }
-  }
-}
-```
+> **注意**: 此端点在文档中设计但尚未实现。
 
 ---
 
-## 5. 分类管理 (Categories)
+## 6. 分类管理 (Categories) ✅
 
-### 5.1 获取分类列表
+### 6.1 获取分类列表
 ```http
 GET /categories?type=expense&parent_id=uuid
 ```
@@ -719,7 +765,7 @@ GET /categories?type=expense&parent_id=uuid
 }
 ```
 
-### 5.2 创建分类
+### 6.2 创建分类
 ```http
 POST /categories
 ```
@@ -735,21 +781,21 @@ POST /categories
 }
 ```
 
-### 5.3 更新分类
+### 6.3 更新分类
 ```http
 PUT /categories/{category_id}
 ```
 
-### 5.4 删除分类
+### 6.4 删除分类
 ```http
 DELETE /categories/{category_id}
 ```
 
 ---
 
-## 6. 预算管理 (Budgets)
+## 7. 预算管理 (Budgets) [接口定义但未实现]
 
-### 6.1 获取预算列表
+### 7.1 获取预算列表
 ```http
 GET /budgets?account_id=uuid&period_type=monthly&year=2024
 ```
@@ -786,7 +832,7 @@ GET /budgets?account_id=uuid&period_type=monthly&year=2024
 }
 ```
 
-### 6.2 创建预算
+### 7.2 创建预算
 ```http
 POST /budgets
 ```
@@ -813,22 +859,22 @@ POST /budgets
 }
 ```
 
-### 6.3 获取预算详情
+### 7.3 获取预算详情
 ```http
 GET /budgets/{budget_id}
 ```
 
-### 6.4 更新预算
+### 7.4 更新预算
 ```http
 PUT /budgets/{budget_id}
 ```
 
-### 6.5 删除预算
+### 7.5 删除预算
 ```http
 DELETE /budgets/{budget_id}
 ```
 
-### 6.6 获取预算执行进度
+### 7.6 获取预算执行进度
 ```http
 GET /budgets/{budget_id}/progress
 ```
@@ -880,9 +926,9 @@ GET /budgets/{budget_id}/progress
 
 ---
 
-## 7. 报表统计 (Reports)
+## 8. 报表统计 (Reports) [待实现]
 
-### 7.1 收支汇总
+### 8.1 收支汇总
 ```http
 GET /reports/summary?account_id=uuid&start_date=2024-01-01&end_date=2024-01-31&group_by=month
 ```
@@ -916,7 +962,7 @@ GET /reports/summary?account_id=uuid&start_date=2024-01-01&end_date=2024-01-31&g
 }
 ```
 
-### 7.2 趋势分析
+### 8.2 趋势分析
 ```http
 GET /reports/trends?account_id=uuid&period=6months&metric=expense&group_by=month
 ```
@@ -954,7 +1000,7 @@ GET /reports/trends?account_id=uuid&period=6months&metric=expense&group_by=month
 }
 ```
 
-### 7.3 分类统计
+### 8.3 分类统计
 ```http
 GET /reports/categories?account_id=uuid&start_date=2024-01-01&end_date=2024-01-31&type=expense
 ```
@@ -995,7 +1041,7 @@ GET /reports/categories?account_id=uuid&start_date=2024-01-01&end_date=2024-01-3
 }
 ```
 
-### 7.4 对比分析
+### 8.4 对比分析
 ```http
 GET /reports/comparison?account_id=uuid&period1_start=2024-01-01&period1_end=2024-01-31&period2_start=2023-01-01&period2_end=2023-01-31
 ```
@@ -1042,7 +1088,7 @@ GET /reports/comparison?account_id=uuid&period1_start=2024-01-01&period1_end=202
 
 ---
 
-## 8. 债务管理 (Debts)
+## 8. 债务管理 (Debts) [待实现]
 
 ### 8.1 获取债务列表
 ```http
@@ -1104,7 +1150,7 @@ DELETE /debts/{debt_id}
 
 ---
 
-## 9. 周期账单 (Recurring Bills)
+## 9. 周期账单 (Recurring Bills) [待实现]
 
 ### 9.1 获取周期账单列表
 ```http
@@ -1192,7 +1238,7 @@ DELETE /recurring-bills/{recurring_bill_id}
 
 ---
 
-## 10. AI对话 (AI)
+## 10. AI对话 (AI) [待实现]
 
 ### 10.1 发送AI对话
 ```http
@@ -1273,7 +1319,7 @@ GET /ai/conversations?session_id=uuid&page=1&size=20
 
 ---
 
-## 11. 文件上传 (Uploads)
+## 11. 文件上传 (Uploads) [待实现]
 
 ### 11.1 上传图片
 ```http
@@ -1407,7 +1453,7 @@ POST /uploads/{upload_id}/import
 
 ---
 
-## 12. 通知和提醒 (Notifications)
+## 12. 通知和提醒 (Notifications) [待实现]
 
 ### 12.1 获取通知列表
 ```http
@@ -1431,7 +1477,7 @@ PUT /notifications/settings
 
 ---
 
-## 13. 系统配置 (System)
+## 13. 系统配置 (System) [待实现]
 
 ### 13.1 获取汇率信息
 ```http
@@ -1501,7 +1547,7 @@ X-Request-ID: uuid (可选，用于请求追踪)
 - **AI对话**: 100次/天
 - **一般API**: 1000次/小时
 
-## WebSocket接口
+## WebSocket接口 [待实现]
 
 ### 连接地址
 ```
@@ -1526,3 +1572,83 @@ wss://api.billapp.com/ws?token=jwt_token
   }
 }
 ```
+
+---
+
+## 📊 API实现进度总结
+
+### ✅ 已完成模块 (2025-09-29)
+
+#### 1. 用户认证系统 - 100% 完成
+- ✅ 用户注册 (`POST /auth/register`)
+- ✅ 用户登录 (`POST /auth/login`)
+- ✅ 邮箱验证 (`POST /auth/send-verification-email`, `POST /auth/verify-email`)
+- ✅ 刷新令牌 (`POST /auth/refresh`)
+- ✅ 用户登出 (`POST /auth/logout`)
+
+#### 2. 账本管理 - 100% 完成
+- ✅ 创建账本 (`POST /accounts`)
+- ✅ 获取账本列表 (`GET /accounts`) - 支持分页
+- ✅ 获取账本详情 (`GET /accounts/{id}`)
+- ✅ 更新账本 (`PUT /accounts/{id}`)
+- ✅ 删除账本 (`DELETE /accounts/{id}`)
+- ✅ 账本汇总统计 (`GET /accounts/{id}/summary`)
+
+#### 3. 账单管理 - 100% 完成 (含转账功能)
+- ✅ 创建账单 (`POST /bills`) - 支持收入、支出、转账
+- ✅ 获取账单列表 (`GET /bills`) - 支持多条件过滤和分页
+- ✅ 获取账单详情 (`GET /bills/{id}`)
+- ✅ 更新账单 (`PUT /bills/{id}`) - 支持转账验证
+- ✅ 删除账单 (`DELETE /bills/{id}`)
+- ✅ **转账功能** - 支持账户间资金转移
+
+### ⚠️ 需要优先实现的关联模块
+
+#### 4. 资产管理 - 高优先级
+账单功能需要资产模块支持，建议下一步实现：
+- 资产创建和管理
+- 资产类型（银行卡、现金、投资等）
+- 资产余额跟踪
+
+#### 5. 分类管理 - 高优先级  
+账单分类功能需要此模块：
+- 收入/支出分类
+- 分类层级结构
+- 分类图标和颜色
+
+### ⏳ 待开发模块
+
+- 预算管理 (Budgets) - 中等优先级
+- 报表统计 (Reports) - 中等优先级
+- 债务管理 (Debts) - 低优先级
+- 周期账单 (Recurring Bills) - 低优先级
+- AI对话 (AI) - 扩展功能
+- 文件上传 (Uploads) - 扩展功能
+- 通知提醒 (Notifications) - 扩展功能
+- 系统配置 (System) - 基础功能
+- WebSocket实时更新 - 扩展功能
+
+### 🎯 开发建议
+
+**第一优先级**: 资产管理 + 分类管理  
+- 完善账单功能的必要依赖
+- 实现完整的记账业务流程
+
+**🎉 转账功能已完成 (2025-09-29)**:
+- ✅ 支持账户间资金转移
+- ✅ 双账户ID验证 (`account_id` + `to_account_id`)
+- ✅ 可选不同资产间转账 (`to_asset_id`)
+- ✅ 完整的权限验证和数据完整性检查
+- ✅ 端到端测试验证通过
+
+**第二优先级**: 预算管理 + 报表统计
+- 核心财务管理功能
+- 用户价值较高的功能
+
+**第三优先级**: 其他扩展功能
+- 根据用户需求和反馈优先级调整
+
+---
+
+*文档最后更新: 2025-09-29*  
+*当前实现状态: 核心记账功能基础完成，账本+账单管理已可用*

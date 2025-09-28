@@ -13,7 +13,9 @@ import os
 from datetime import datetime
 
 # 添加项目路径以便导入配置
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 from app.core.config import settings
 

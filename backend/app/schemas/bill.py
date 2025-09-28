@@ -3,7 +3,7 @@
 """
 
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime, date
 from decimal import Decimal
 import uuid
@@ -14,7 +14,9 @@ class BillBase(BaseModel):
     """账单基础模式"""
 
     account_id: uuid.UUID
+    to_account_id: Optional[uuid.UUID] = None  # 转账目标账户，仅转账时需要
     asset_id: uuid.UUID
+    to_asset_id: Optional[uuid.UUID] = None  # 转账目标资产，仅转账时需要
     category_id: uuid.UUID
     amount: Decimal
     currency: str = "CNY"
@@ -33,7 +35,9 @@ class BillUpdate(BaseModel):
     """账单更新模式"""
 
     account_id: Optional[uuid.UUID] = None
+    to_account_id: Optional[uuid.UUID] = None
     asset_id: Optional[uuid.UUID] = None
+    to_asset_id: Optional[uuid.UUID] = None
     category_id: Optional[uuid.UUID] = None
     amount: Optional[Decimal] = None
     currency: Optional[str] = None
@@ -45,14 +49,12 @@ class BillUpdate(BaseModel):
 class BillRead(BillBase):
     """账单读取模式"""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
-        orm_mode = True
 
 
 class BillWithDetails(BillRead):

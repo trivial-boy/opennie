@@ -3,7 +3,7 @@
 """
 
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 import uuid
 
@@ -36,15 +36,13 @@ class AccountUpdate(BaseModel):
 class AccountRead(AccountBase):
     """账本读取模式"""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     members: List[uuid.UUID]
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
-        orm_mode = True
 
 
 class AccountSummary(BaseModel):

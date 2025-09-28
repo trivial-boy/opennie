@@ -36,7 +36,9 @@ async def create_account(
     await db.commit()
     await db.refresh(account)
 
-    return ResponseModel(data=AccountRead.from_orm(account), message="账本创建成功")
+    return ResponseModel(
+        data=AccountRead.model_validate(account), message="账本创建成功"
+    )
 
 
 @router.get("", response_model=PaginatedResponse[AccountRead], summary="获取账本列表")
@@ -80,7 +82,7 @@ async def get_accounts(
 
     return PaginatedResponse(
         data=PaginatedData(
-            items=[AccountRead.from_orm(account) for account in accounts],
+            items=[AccountRead.model_validate(account) for account in accounts],
             pagination=pagination,
         )
     )
@@ -104,7 +106,7 @@ async def get_account(
     if not account:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="账本不存在")
 
-    return ResponseModel(data=AccountRead.from_orm(account))
+    return ResponseModel(data=AccountRead.model_validate(account))
 
 
 @router.put(
@@ -134,7 +136,9 @@ async def update_account(
     await db.commit()
     await db.refresh(account)
 
-    return ResponseModel(data=AccountRead.from_orm(account), message="账本更新成功")
+    return ResponseModel(
+        data=AccountRead.model_validate(account), message="账本更新成功"
+    )
 
 
 @router.delete("/{account_id}", response_model=ResponseModel[dict], summary="删除账本")

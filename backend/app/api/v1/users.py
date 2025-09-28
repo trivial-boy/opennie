@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get("/me", response_model=ResponseModel[UserRead], summary="获取当前用户信息")
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """获取当前登录用户的信息"""
-    return ResponseModel(data=UserRead.from_orm(current_user))
+    return ResponseModel(data=UserRead.model_validate(current_user))
 
 
 @router.put("/me", response_model=ResponseModel[UserRead], summary="更新当前用户信息")
@@ -63,5 +63,5 @@ async def update_current_user(
     await db.refresh(current_user)
 
     return ResponseModel(
-        data=UserRead.from_orm(current_user), message="用户信息更新成功"
+        data=UserRead.model_validate(current_user), message="用户信息更新成功"
     )

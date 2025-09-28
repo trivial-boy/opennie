@@ -4,6 +4,14 @@
 """
 
 import asyncio
+import sys
+import os
+
+# 添加项目路径
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
+
 from app.core.database import init_database, db
 from app.models.user import User
 from app.models.account import Account

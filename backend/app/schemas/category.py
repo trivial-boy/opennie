@@ -3,7 +3,7 @@
 """
 
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 import uuid
 from ..models.category import TransactionTypeEnum
@@ -38,12 +38,11 @@ class CategoryUpdate(BaseModel):
 class CategoryRead(CategoryBase):
     """分类读取模式"""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     is_system: bool
     created_at: datetime
     updated_at: datetime
     children: Optional[List["CategoryRead"]] = []
-
-    class Config:
-        from_attributes = True
