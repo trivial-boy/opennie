@@ -89,7 +89,7 @@ install_dependencies() {
     fi
 
     echo -e "${YELLOW}🔄 安装依赖包...${NC}"
-    sh fix-dependencies.sh
+    # sh fix-dependencies.sh
     echo -e "${GREEN}✅ 依赖安装完成${NC}"
 }
 
