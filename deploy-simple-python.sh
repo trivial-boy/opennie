@@ -89,7 +89,25 @@ install_dependencies() {
     fi
 
     echo -e "${YELLOW}🔄 安装依赖包...${NC}"
-    bash ../fix-dependencies.sh
+
+    # 检查requirements.txt文件
+    if [[ -f "requirements.txt" ]]; then
+        echo "📋 找到requirements.txt文件，安装所有依赖..."
+
+        # 先安装基础依赖，避免版本冲突
+        echo "📦 安装基础依赖..."
+        pip install wheel setuptools
+
+        # 安装requirements.txt中的所有依赖
+        echo "📦 安装requirements.txt中的依赖..."
+        pip install -r requirements.txt
+
+        echo "✅ requirements.txt依赖安装完成"
+    else
+        echo "⚠️ 未找到requirements.txt，调用修复脚本..."
+        bash ../fix-dependencies.sh
+    fi
+
     echo -e "${GREEN}✅ 依赖安装完成${NC}"
 }
 
