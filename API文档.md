@@ -234,7 +234,7 @@ POST /auth/login
 }
 ```
 
-> **注意**: 
+> **注意**:
 > - `expires_in` 值由配置文件中的 `ACCESS_TOKEN_EXPIRE_MINUTES` 决定(默认30分钟=1800秒)
 > - 如果邮件验证功能启用但用户邮箱未验证，将返回422错误
 ```
@@ -387,7 +387,7 @@ POST /auth/reset-password
 ## 3. 账本管理 (Accounts) ✅
 
 > **✅ 实现状态**: 账本管理功能已完全实现并测试通过！
-> 
+>
 > **当前已实现的功能包括**:
 > - ✅ 用户认证系统 (注册、登录、邮箱验证、令牌管理)
 > - ✅ 用户管理 (获取用户信息、更新用户信息) - **已实现**
@@ -555,7 +555,7 @@ POST /bills
 ```json
 {
   "account_id": "uuid",
-  "asset_id": "uuid", 
+  "asset_id": "uuid",
   "category_id": "uuid",
   "amount": 100.00,
   "currency": "CNY",
@@ -574,7 +574,7 @@ POST /bills
   "to_asset_id": "uuid",          // 转入资产ID (可选)
   "category_id": "uuid",
   "amount": 500.00,
-  "currency": "CNY", 
+  "currency": "CNY",
   "type": "transfer",             // 转账类型
   "description": "转账到家庭账户",
   "date": "2024-01-01"
@@ -1610,7 +1610,7 @@ wss://api.billapp.com/ws?token=jwt_token
 - 资产类型（银行卡、现金、投资等）
 - 资产余额跟踪
 
-#### 5. 分类管理 - 高优先级  
+#### 5. 分类管理 - 高优先级
 账单分类功能需要此模块：
 - 收入/支出分类
 - 分类层级结构
@@ -1630,7 +1630,7 @@ wss://api.billapp.com/ws?token=jwt_token
 
 ### 🎯 开发建议
 
-**第一优先级**: 资产管理 + 分类管理  
+**第一优先级**: 资产管理 + 分类管理
 - 完善账单功能的必要依赖
 - 实现完整的记账业务流程
 
@@ -1650,5 +1650,5 @@ wss://api.billapp.com/ws?token=jwt_token
 
 ---
 
-*文档最后更新: 2025-09-29*  
+*文档最后更新: 2025-09-29*
 *当前实现状态: 核心记账功能基础完成，账本+账单管理已可用*

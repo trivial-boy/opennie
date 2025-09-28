@@ -15,11 +15,10 @@ tests/
 │   └── test_pydantic_upgrade.py # Pydantic升级测试
 ├── integration/                # 集成测试
 │   ├── __init__.py
-│   ├── test_auth_api.py        # 用户认证API集成测试
+│   ├── test_auth_api.py        # 用户认证API集成测试 (含注册、登录、默认数据验证)
 │   ├── test_categories_api.py  # 分类管理API集成测试
-│   ├── test_login_simple.py    # 简单登录测试
-│   ├── test_register_simple.py # 简单注册测试
-│   └── test_accounts_bills_api.py # 账本和账单API测试
+│   ├── test_accounts_bills_api.py # 账本和账单API测试
+│   └── test_transfer_api.py    # 转账功能集成测试
 └── e2e/                        # 端到端测试
     └── __init__.py
 ```
@@ -76,11 +75,10 @@ python3 -m pytest tests/ -v
 
 ### 集成测试文件
 
-- **test_auth_api.py**: 完整的用户认证流程测试（注册、登录、刷新token、登出）
+- **test_auth_api.py**: 完整的用户认证流程测试（注册、登录、刷新token、登出、默认数据验证）
 - **test_categories_api.py**: 分类管理的CRUD操作测试
-- **test_login_simple.py**: 简单的登录功能测试
-- **test_register_simple.py**: 简单的注册功能测试
 - **test_accounts_bills_api.py**: 账本和账单管理API测试
+- **test_transfer_api.py**: 转账功能集成测试（转账创建、验证、更新）
 
 ## 测试最佳实践
 

@@ -224,7 +224,7 @@ class IExceptionHandler(ABC):
                     "error": {
                         "code": "INTERNAL_ERROR",
                         "message": "服务器内部错误",
-                        "details": None,
+                        "details": error_details,
                     },
                 },
             )
@@ -419,6 +419,13 @@ class DatabaseExceptionHandler(IExceptionHandler):
             )
         else:
             logger.error(f"Database error: {exception}")
+            import traceback
+
+            error_details = {
+                "exception_type": type(exception).__name__,
+                "exception_message": str(exception),
+                "traceback_lines": traceback.format_exc().split("\n")[-8:],  # 最后8行
+            }
             return HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail={
@@ -426,7 +433,7 @@ class DatabaseExceptionHandler(IExceptionHandler):
                     "error": {
                         "code": "DATABASE_ERROR",
                         "message": "数据库操作失败",
-                        "details": None,
+                        "details": error_details,
                     },
                 },
             )

@@ -83,6 +83,11 @@ class AuthTester:
                     print(
                         f"   📧 邮箱验证状态: {user_data.get('email_verified', False)}"
                     )
+
+                    # 验证默认数据创建
+                    print("   🔍 验证默认数据创建...")
+                    await self.verify_default_data_creation()
+
                     return True
                 else:
                     print(f"   ❌ 注册失败 (HTTP {resp.status}): {data}")
@@ -91,6 +96,62 @@ class AuthTester:
         except Exception as e:
             print(f"   ❌ 注册请求失败: {str(e)}")
             return False
+
+    async def verify_default_data_creation(self):
+        """验证默认数据创建（在注册后立即检查）"""
+        print("   📋 检查默认账户创建...")
+
+        # 需要先登录获取token
+        login_data = {
+            "email": self.test_user["email"],
+            "password": self.test_user["password"],
+        }
+
+        try:
+            async with self.session.post(
+                f"{API_BASE}/auth/login",
+                json=login_data,
+                headers={"Content-Type": "application/json"},
+            ) as resp:
+                if resp.status == 200:
+                    login_result = await resp.json()
+                    temp_token = login_result["data"]["access_token"]
+                    headers = {"Authorization": f"Bearer {temp_token}"}
+
+                    # 检查默认账户
+                    async with self.session.get(
+                        f"{API_BASE}/accounts", headers=headers
+                    ) as acc_resp:
+                        if acc_resp.status == 200:
+                            accounts_data = await acc_resp.json()
+                            accounts = accounts_data["data"]["items"]
+                            print(f"   ✅ 默认账户: {len(accounts)} 个账户已创建")
+                            for account in accounts:
+                                print(f"      - {account['name']}")
+                        else:
+                            print(f"   ⚠️ 无法获取账户信息: {acc_resp.status}")
+
+                    # 检查默认分类
+                    async with self.session.get(
+                        f"{API_BASE}/categories", headers=headers
+                    ) as cat_resp:
+                        if cat_resp.status == 200:
+                            categories_data = await cat_resp.json()
+                            categories = categories_data["data"]
+                            print(f"   ✅ 默认分类: {len(categories)} 个分类已创建")
+                            income_count = sum(
+                                1 for cat in categories if cat["type"] == "income"
+                            )
+                            expense_count = sum(
+                                1 for cat in categories if cat["type"] == "expense"
+                            )
+                            print(f"      - 收入分类: {income_count} 个")
+                            print(f"      - 支出分类: {expense_count} 个")
+                        else:
+                            print(f"   ⚠️ 无法获取分类信息: {cat_resp.status}")
+
+        except Exception as e:
+            print(f"   ⚠️ 默认数据验证失败: {str(e)}")
 
     async def test_login(self):
         """测试用户登录"""

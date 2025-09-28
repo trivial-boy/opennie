@@ -52,7 +52,7 @@ class ApplicationFactory:
 
         # 添加自定义中间件（按执行顺序添加）
         app.add_middleware(SecurityHeadersMiddleware)
-        app.add_middleware(ExceptionHandlingMiddleware)
+        # app.add_middleware(ExceptionHandlingMiddleware)  # 临时禁用
         app.add_middleware(LoggingMiddleware)
         app.add_middleware(RequestIDMiddleware)
 
@@ -81,9 +81,27 @@ class ApplicationFactory:
         async def general_exception_handler(request: Request, exc: Exception):
             """通用异常处理"""
             logger.error(f"Unhandled exception: {exc}", exc_info=True)
-            http_exception = exception_handler.handle_exception(exc)
+
+            # 直接返回详细错误信息用于调试
+            import traceback
+
+            error_details = {
+                "exception_type": type(exc).__name__,
+                "exception_message": str(exc),
+                "traceback": traceback.format_exc().split("\n"),
+            }
+
             return JSONResponse(
-                status_code=http_exception.status_code, content=http_exception.detail
+                status_code=500,
+                content={
+                    "success": False,
+                    "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "服务器内部错误",
+                        "details": error_details,
+                    },
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
             )
 
     @staticmethod

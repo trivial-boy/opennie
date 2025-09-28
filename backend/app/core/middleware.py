@@ -94,10 +94,21 @@ class ExceptionHandlingMiddleware(BaseHTTPMiddleware):
             # 处理其他未捕获的异常
             logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
 
+            # 生成详细错误信息
+            import traceback
+
+            error_details = {
+                "exception_type": type(e).__name__,
+                "exception_message": str(e),
+                "traceback": traceback.format_exc().split("\n")[-10:],  # 最后10行
+            }
+
             error_response = ErrorResponse(
                 success=False,
                 error=ErrorInfo(
-                    code="INTERNAL_ERROR", message="服务器内部错误", details=None
+                    code="INTERNAL_ERROR",
+                    message="服务器内部错误",
+                    details=error_details,
                 ),
                 timestamp=datetime.utcnow(),
             )
