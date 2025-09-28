@@ -1,0 +1,61 @@
+# 记账App Git忽略文件
+
+# 环境变量
+.env
+.env.local
+.env.production
+
+# 依赖目录
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+logs/
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 构建文件
+dist/
+build/
+*.egg-info/
+
+# 测试覆盖率
+coverage/
+.coverage
+.pytest_cache/
+
+# 配置文件（包含敏感信息）
+config/production.py
+config/local.py
+
+# 上传文件
+uploads/
+static/uploads/
+
+# 临时文件
+tmp/
+temp/
