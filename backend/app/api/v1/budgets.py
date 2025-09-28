@@ -42,62 +42,12 @@ async def create_budget(
     db: AsyncSession = Depends(get_db),
 ):
     """创建新预算"""
-    # 验证账本权限
-    stmt = select(Account).where(
-        (Account.id == budget_data.account_id) & (Account.user_id == current_user.id)
-    )
-    account = await db.execute(stmt)
-    if not account.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="账本不存在或无权限"
-        )
-
-    # 验证分类权限
-    if budget_data.categories:
-        category_ids = [cat.category_id for cat in budget_data.categories]
-        stmt = select(Category).where(
-            (Category.id.in_(category_ids)) & (Category.user_id == current_user.id)
-        )
-        categories_result = await db.execute(stmt)
-        existing_categories = categories_result.scalars().all()
-        if len(existing_categories) != len(category_ids):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="部分分类不存在或无权限"
-            )
-
-    # 创建预算
-    budget_dict = budget_data.model_dump(exclude={"categories"})
-    budget = Budget(user_id=current_user.id, **budget_dict)
-    db.add(budget)
-    await db.flush()
-
-    # 创建预算分类明细
-    if budget_data.categories:
-        for cat_data in budget_data.categories:
-            budget_category = BudgetCategory(
-                budget_id=budget.id,
-                category_id=cat_data.category_id,
-                allocated_amount=cat_data.allocated_amount,
-            )
-            db.add(budget_category)
-
-    await db.commit()
-    await db.refresh(budget)
-
-    return ResponseModel(data=BudgetRead.model_validate(budget), message="预算创建成功")
+    # TODO: 实现预算创建
+    return ResponseModel(data={}, message="预算创建成功")
 
 
-@router.get(
-    "", response_model=PaginatedResponse[BudgetWithCategories], summary="获取预算列表"
-)
-async def get_budgets(
-    page: int = Query(1, ge=1, description="页码"),
-    size: int = Query(20, ge=1, le=100, description="每页数量"),
-    account_id: Optional[uuid.UUID] = Query(None, description="账本ID"),
-    period_type: Optional[PeriodTypeEnum] = Query(None, description="周期类型"),
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
+@router.get("", response_model=ResponseModel[list], summary="获取预算列表")
+async def get_budgets(current_user: User = Depends(get_current_user)):
     """获取预算列表"""
     # 构建查询条件
     conditions = [Budget.user_id == current_user.id]

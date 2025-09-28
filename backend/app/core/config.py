@@ -111,31 +111,25 @@ class Settings:
         self.LOG_FORMAT = os.getenv("LOG_FORMAT", "detailed")
 
     def _load_environment_config(self):
-        """根据环境加载对应的配置文件"""
+        """强制加载开发环境配置文件"""
         try:
             from dotenv import load_dotenv
 
             # 构建配置文件路径
             base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
-            # 首先加载公用配置文件
-            common_env_file = os.path.join(base_dir, ".env")
-            if os.path.exists(common_env_file):
-                load_dotenv(common_env_file)
-                print(f"Loaded common configuration from: {common_env_file}")
-
-            # 获取环境设置
-            env = os.getenv("ENVIRONMENT", "development")
-
-            # 加载环境特定配置文件
-            env_file = os.path.join(base_dir, f".env.{env}")
-            if os.path.exists(env_file):
-                load_dotenv(
-                    env_file, override=True
-                )  # override=True 允许环境特定配置覆盖公用配置
-                print(f"Loaded environment-specific configuration from: {env_file}")
+            # 固定使用开发环境配置
+            dev_env_file = os.path.join(base_dir, ".env.development")
+            if os.path.exists(dev_env_file):
+                load_dotenv(dev_env_file, override=True)
+                print(f"✅ 强制加载开发环境配置: {dev_env_file}")
             else:
-                print(f"Environment-specific config file {env_file} not found")
+                print(f"❌ 开发环境配置文件不存在: {dev_env_file}")
+                # 如果开发配置不存在，尝试加载公用配置作为备用
+                common_env_file = os.path.join(base_dir, ".env")
+                if os.path.exists(common_env_file):
+                    load_dotenv(common_env_file)
+                    print(f"⚠️  备用加载公用配置: {common_env_file}")
 
         except ImportError:
             print("python-dotenv not installed, using environment variables only")
