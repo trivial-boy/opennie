@@ -90,6 +90,10 @@ install_dependencies() {
 
     echo -e "${YELLOW}🔄 安装依赖包...${NC}"
 
+    # 升级pip
+    echo "📦 升级pip..."
+    pip install --upgrade pip
+
     # 检查requirements.txt文件
     if [[ -f "requirements.txt" ]]; then
         echo "📋 找到requirements.txt文件，安装所有依赖..."
@@ -107,6 +111,25 @@ install_dependencies() {
         echo "⚠️ 未找到requirements.txt，调用修复脚本..."
         bash ../fix-dependencies.sh
     fi
+
+    # 验证关键依赖是否安装成功
+    echo "🧪 验证关键依赖..."
+    python3 -c "
+try:
+    import fastapi
+    import uvicorn
+    print('✅ FastAPI 和 Uvicorn 安装成功')
+    print(f'FastAPI版本: {fastapi.__version__}')
+    print(f'Uvicorn版本: {uvicorn.__version__}')
+except ImportError as e:
+    print(f'❌ 关键依赖缺失: {e}')
+    exit(1)
+" || {
+        echo -e "${RED}❌ 关键依赖验证失败，尝试手动安装...${NC}"
+        pip install fastapi==0.104.1 uvicorn[standard]==0.24.0
+        echo "✅ 手动安装完成，再次验证..."
+        python3 -c "import fastapi, uvicorn; print('✅ 验证通过')"
+    }
 
     echo -e "${GREEN}✅ 依赖安装完成${NC}"
 }
