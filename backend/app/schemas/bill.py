@@ -52,6 +52,7 @@ class BillRead(BillBase):
 
     class Config:
         from_attributes = True
+        orm_mode = True
 
 
 class BillWithDetails(BillRead):

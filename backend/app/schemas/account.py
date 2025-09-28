@@ -44,6 +44,7 @@ class AccountRead(AccountBase):
 
     class Config:
         from_attributes = True
+        orm_mode = True
 
 
 class AccountSummary(BaseModel):
