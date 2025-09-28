@@ -88,8 +88,6 @@ install_dependencies() {
         source venv/bin/activate
     fi
 
-    echo -e "${YELLOW}🔄 升级pip...${NC}"
-    pip3 install --upgrade pip3
     echo -e "${YELLOW}🔄 安装依赖包...${NC}"
     sh fix-dependencies.sh
     echo -e "${GREEN}✅ 依赖安装完成${NC}"
