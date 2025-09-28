@@ -1,7 +1,7 @@
 # 记账App后端依赖
 
 # Web框架
-fastapi==0.104.1
+fastapi==0.83.0
 uvicorn[standard]==0.24.0
 
 # 数据库 - 使用成熟稳定的版本
