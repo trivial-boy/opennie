@@ -76,7 +76,13 @@ if [[ -f "$REQUIREMENTS_FILE" ]]; then
 
         # 安装兼容版本的核心依赖
         try_install_with_sources "fastapi>=0.70.0"
-        try_install_with_sources "uvicorn[standard]>=0.20.0"
+
+        # 分别安装uvicorn和相关依赖
+        try_install_with_sources "uvicorn>=0.20.0"
+        try_install_with_sources "websockets>=10.0"
+        try_install_with_sources "watchfiles>=0.13"
+        try_install_with_sources "python-multipart>=0.0.5"
+
         try_install_with_sources "sqlalchemy[asyncio]==1.4.48"
         try_install_with_sources "asyncpg>=0.25.0"
         try_install_with_sources "alembic>=1.10.0"
@@ -84,7 +90,6 @@ if [[ -f "$REQUIREMENTS_FILE" ]]; then
         try_install_with_sources "aioredis>=2.0.0"
         try_install_with_sources "python-jose[cryptography]>=3.0.0"
         try_install_with_sources "passlib[bcrypt]>=1.7.0"
-        try_install_with_sources "python-multipart>=0.0.5"
         try_install_with_sources "python-dotenv>=1.0.0"
         try_install_with_sources "pydantic>=1.10.0"
         try_install_with_sources "httpx>=0.23.0"
@@ -97,7 +102,11 @@ else
 
     # Web框架 - 使用兼容版本
     try_install_with_sources "fastapi>=0.70.0"
-    try_install_with_sources "uvicorn[standard]>=0.20.0"
+
+    # 分别安装uvicorn和相关依赖
+    try_install_with_sources "uvicorn>=0.20.0"
+    try_install_with_sources "websockets>=10.0"
+    try_install_with_sources "watchfiles>=0.13"
 
     # 数据库
     try_install_with_sources "sqlalchemy[asyncio]==1.4.48"
