@@ -14,6 +14,37 @@ fi
 echo "📦 升级pip..."
 pip install --upgrade pip
 
+# 定义多个PyPI源
+PYPI_SOURCES=(
+    "https://pypi.org/simple/"
+    "http://mirrors.cloud.aliyuncs.com/pypi/simple/"
+    "https://pypi.tuna.tsinghua.edu.cn/simple/"
+    "https://pypi.douban.com/simple/"
+)
+
+# 尝试多源安装函数
+try_install_with_sources() {
+    local package="$1"
+    local installed=false
+
+    for source in "${PYPI_SOURCES[@]}"; do
+        echo "🔄 尝试从 $source 安装 $package"
+        if pip install --trusted-host mirrors.cloud.aliyuncs.com --trusted-host pypi.tuna.tsinghua.edu.cn --trusted-host pypi.douban.com -i "$source" "$package"; then
+            echo "✅ 成功从 $source 安装 $package"
+            installed=true
+            break
+        else
+            echo "❌ 从 $source 安装 $package 失败"
+        fi
+    done
+
+    if [[ "$installed" != true ]]; then
+        echo "❌ 所有源都安装失败: $package"
+        return 1
+    fi
+    return 0
+}
+
 # 检查requirements.txt文件
 REQUIREMENTS_FILE="requirements.txt"
 if [[ -f "$REQUIREMENTS_FILE" ]]; then

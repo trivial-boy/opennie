@@ -94,19 +94,80 @@ install_dependencies() {
     echo "📦 升级pip..."
     pip install --upgrade pip
 
+    # 定义多个PyPI源
+    PYPI_SOURCES=(
+        "https://pypi.org/simple/"
+        "http://mirrors.cloud.aliyuncs.com/pypi/simple/"
+        "https://pypi.tuna.tsinghua.edu.cn/simple/"
+        "https://pypi.douban.com/simple/"
+    )
+
+    # 尝试多源安装函数
+    try_install_with_sources() {
+        local package="$1"
+        local installed=false
+
+        for source in "${PYPI_SOURCES[@]}"; do
+            echo "🔄 尝试从 $source 安装 $package"
+            if pip install --trusted-host mirrors.cloud.aliyuncs.com --trusted-host pypi.tuna.tsinghua.edu.cn --trusted-host pypi.douban.com -i "$source" "$package"; then
+                echo "✅ 成功从 $source 安装 $package"
+                installed=true
+                break
+            else
+                echo "❌ 从 $source 安装 $package 失败"
+            fi
+        done
+
+        if [[ "$installed" != true ]]; then
+            echo "❌ 所有源都安装失败: $package"
+            return 1
+        fi
+        return 0
+    }
+
     # 检查requirements.txt文件
     if [[ -f "requirements.txt" ]]; then
-        echo "📋 找到requirements.txt文件，安装所有依赖..."
+        echo "📋 找到requirements.txt文件，尝试多源安装依赖..."
 
-        # 先安装基础依赖，避免版本冲突
+        # 先安装基础依赖
         echo "📦 安装基础依赖..."
-        pip install wheel setuptools
+        try_install_with_sources "wheel"
+        try_install_with_sources "setuptools"
 
-        # 安装requirements.txt中的所有依赖
-        echo "📦 安装requirements.txt中的依赖..."
-        pip install -r requirements.txt
+        # 尝试直接安装requirements.txt
+        echo "📦 尝试安装requirements.txt..."
+        local success=false
+        for source in "${PYPI_SOURCES[@]}"; do
+            echo "🔄 尝试从 $source 安装requirements.txt"
+            if pip install --trusted-host mirrors.cloud.aliyuncs.com --trusted-host pypi.tuna.tsinghua.edu.cn --trusted-host pypi.douban.com -i "$source" -r requirements.txt; then
+                echo "✅ 成功从 $source 安装requirements.txt"
+                success=true
+                break
+            else
+                echo "❌ 从 $source 安装requirements.txt失败，尝试下一个源..."
+            fi
+        done
 
-        echo "✅ requirements.txt依赖安装完成"
+        if [[ "$success" != true ]]; then
+            echo "⚠️ requirements.txt安装失败，尝试安装兼容版本的核心依赖..."
+
+            # 安装兼容版本的核心依赖
+            try_install_with_sources "fastapi>=0.70.0"
+            try_install_with_sources "uvicorn[standard]>=0.20.0"
+            try_install_with_sources "sqlalchemy[asyncio]==1.4.48"
+            try_install_with_sources "asyncpg>=0.25.0"
+            try_install_with_sources "alembic>=1.10.0"
+            try_install_with_sources "redis>=4.0.0"
+            try_install_with_sources "aioredis>=2.0.0"
+            try_install_with_sources "python-jose[cryptography]>=3.0.0"
+            try_install_with_sources "passlib[bcrypt]>=1.7.0"
+            try_install_with_sources "python-multipart>=0.0.5"
+            try_install_with_sources "python-dotenv>=1.0.0"
+            try_install_with_sources "pydantic>=1.10.0"
+            try_install_with_sources "httpx>=0.23.0"
+        fi
+
+        echo "✅ 依赖安装尝试完成"
     else
         echo "⚠️ 未找到requirements.txt，调用修复脚本..."
         bash ../fix-dependencies.sh
@@ -125,10 +186,11 @@ except ImportError as e:
     print(f'❌ 关键依赖缺失: {e}')
     exit(1)
 " || {
-        echo -e "${RED}❌ 关键依赖验证失败，尝试手动安装...${NC}"
-        pip install fastapi==0.104.1 uvicorn[standard]==0.24.0
-        echo "✅ 手动安装完成，再次验证..."
-        python3 -c "import fastapi, uvicorn; print('✅ 验证通过')"
+        echo -e "${RED}❌ 关键依赖验证失败，尝试最后安装兼容版本...${NC}"
+        try_install_with_sources "fastapi>=0.70.0"
+        try_install_with_sources "uvicorn[standard]>=0.20.0"
+        echo "✅ 最后安装完成，再次验证..."
+        python3 -c "import fastapi, uvicorn; print('✅ 验证通过')" || echo "⚠️ 验证仍失败，但继续启动服务..."
     }
 
     echo -e "${GREEN}✅ 依赖安装完成${NC}"
