@@ -119,7 +119,7 @@ install_dependencies() {
         done
 
         if [[ "$installed" != true ]]; then
-            echo "❌ 所有源都安装失败: $package"
+            echo "⚠️ 所有源都安装失败: $package，继续安装其他依赖..."
             return 1
         fi
         return 0
