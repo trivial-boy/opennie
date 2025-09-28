@@ -1,0 +1,47 @@
+# 记账App后端依赖 - 兼容阿里云镜像版本
+
+# Web框架 - 使用可用的最新版本
+fastapi>=0.80.0,<0.90.0
+uvicorn[standard]>=0.20.0,<0.25.0
+
+# 数据库 - 使用稳定版本
+sqlalchemy[asyncio]==1.4.48
+asyncpg>=0.25.0,<0.30.0
+alembic>=1.10.0,<1.15.0
+
+# 缓存
+redis>=4.0.0,<6.0.0
+aioredis>=2.0.0,<3.0.0
+
+# 认证和安全
+python-jose[cryptography]>=3.0.0,<4.0.0
+passlib[bcrypt]>=1.7.0,<2.0.0
+python-multipart>=0.0.5,<1.0.0
+
+# 邮件发送
+aiosmtplib>=1.1.0,<4.0.0
+jinja2>=3.0.0,<4.0.0
+
+# 环境变量管理
+python-dotenv>=0.19.0,<2.0.0
+
+# 数据验证 - 使用v1版本以确保兼容性
+pydantic>=1.10.0,<2.0.0
+
+# HTTP客户端
+httpx>=0.23.0,<1.0.0
+
+# 日志
+loguru>=0.6.0,<1.0.0
+
+# 工具库
+python-dateutil>=2.8.0,<3.0.0
+pytz>=2022.1
+
+# 文件处理
+pillow>=9.0.0,<11.0.0
+
+# 开发工具
+pytest>=7.0.0,<8.0.0
+pytest-asyncio>=0.20.0,<1.0.0
+black>=22.0.0,<24.0.0
