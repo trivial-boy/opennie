@@ -151,15 +151,26 @@ install_dependencies() {
         if [[ "$success" != true ]]; then
             echo "⚠️ requirements.txt安装失败，尝试安装兼容版本的核心依赖..."
 
-            # 安装兼容版本的核心依赖
-            try_install_with_sources "fastapi>=0.70.0"
+            # 检查Python版本并安装对应的兼容依赖
+            PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+            echo "🐍 检测到Python版本: $PYTHON_VERSION"
 
-            # 分别安装uvicorn和相关依赖
-            try_install_with_sources "uvicorn>=0.20.0"
-            try_install_with_sources "websockets>=10.0"
-            try_install_with_sources "watchfiles>=0.13"
+            if [[ "$PYTHON_VERSION" == "3.6" ]]; then
+                echo "📦 安装Python 3.6兼容版本..."
+                try_install_with_sources "fastapi>=0.65.0,<0.69.0"
+                try_install_with_sources "pydantic>=1.6.0,<1.9.0"
+                try_install_with_sources "uvicorn>=0.13.0,<0.16.0"
+                try_install_with_sources "starlette>=0.14.0,<0.16.0"
+            else
+                echo "📦 安装标准兼容版本..."
+                try_install_with_sources "fastapi>=0.70.0"
+                try_install_with_sources "pydantic>=1.10.0"
+                try_install_with_sources "uvicorn>=0.20.0"
+            fi
+
+            # 通用依赖
+            try_install_with_sources "websockets>=9.0"
             try_install_with_sources "python-multipart>=0.0.5"
-
             try_install_with_sources "sqlalchemy[asyncio]==1.4.48"
             try_install_with_sources "asyncpg>=0.25.0"
             try_install_with_sources "alembic>=1.10.0"
@@ -168,7 +179,6 @@ install_dependencies() {
             try_install_with_sources "python-jose[cryptography]>=3.0.0"
             try_install_with_sources "passlib[bcrypt]>=1.7.0"
             try_install_with_sources "python-dotenv>=1.0.0"
-            try_install_with_sources "pydantic>=1.10.0"
             try_install_with_sources "httpx>=0.23.0"
         fi
 
@@ -192,10 +202,23 @@ except ImportError as e:
     exit(1)
 " || {
         echo -e "${RED}❌ 关键依赖验证失败，尝试最后安装兼容版本...${NC}"
-        try_install_with_sources "fastapi>=0.70.0"
-        try_install_with_sources "uvicorn>=0.20.0"
-        try_install_with_sources "websockets>=10.0"
-        try_install_with_sources "watchfiles>=0.13"
+
+        # 检查Python版本
+        PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+        echo "🐍 检测到Python版本: $PYTHON_VERSION"
+
+        if [[ "$PYTHON_VERSION" == "3.6" ]]; then
+            echo "📦 安装Python 3.6兼容版本..."
+            try_install_with_sources "fastapi>=0.65.0,<0.69.0"
+            try_install_with_sources "pydantic>=1.6.0,<1.9.0"
+            try_install_with_sources "uvicorn>=0.13.0,<0.16.0"
+            try_install_with_sources "starlette>=0.14.0,<0.16.0"
+        else
+            try_install_with_sources "fastapi>=0.70.0"
+            try_install_with_sources "uvicorn>=0.20.0"
+            try_install_with_sources "websockets>=10.0"
+        fi
+
         echo "✅ 最后安装完成，再次验证..."
         python3 -c "import fastapi, uvicorn; print('✅ 验证通过')" || echo "⚠️ 验证仍失败，但继续启动服务..."
     }
