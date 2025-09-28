@@ -18,7 +18,7 @@ pip install --upgrade pip
 echo "📦 安装核心依赖..."
 
 # Web框架
-pip install "fastapi>=0.80.0,<0.90.0"
+pip3 install "fastapi>=0.80.0,<0.90.0"
 pip install "uvicorn[standard]>=0.20.0,<0.25.0"
 
 # 数据库
