@@ -1,5 +1,7 @@
+# 替代Dockerfile - 如果主Dockerfile仍有问题可使用此版本
+# 使用官方镜像不修改软件源，只优化pip源
+
 # 支持多镜像源的 Python 3.9.6 slim 镜像
-# 使用构建参数来支持不同的镜像源
 ARG DOCKER_REGISTRY=registry.cn-hangzhou.aliyuncs.com
 FROM ${DOCKER_REGISTRY}/library/python:3.9.6-slim
 
@@ -10,17 +12,14 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    DEBIAN_FRONTEND=noninteractive
 
-# 配置国内镜像源 - 使用更稳定的软件源配置
-RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
-    sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
-
-# 配置pip国内镜像源
+# 只配置pip国内镜像源，不修改系统软件源
 RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
     pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
 
-# 更新软件包列表并安装系统依赖
+# 直接使用原始软件源安装系统依赖（更稳定）
 RUN apt-get update && apt-get install -y \
     gcc \
     default-libmysqlclient-dev \

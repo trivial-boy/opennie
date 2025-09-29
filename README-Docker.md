@@ -162,6 +162,26 @@ docker system df
 
 ### 常见问题
 
+#### Debian软件源错误
+如果遇到类似错误：
+```
+The repository 'https://mirrors.aliyun.com/debian bullseye-backports Release' does not have a Release file.
+```
+
+**解决方案**：
+```bash
+# 方案1：使用替代Dockerfile
+cp Dockerfile.alternative Dockerfile
+docker-compose up --build
+
+# 方案2：配置Docker镜像加速后直接构建
+sudo ./docker/setup-docker-mirrors.sh
+docker-compose up --build
+
+# 方案3：使用不同的镜像源
+docker-compose build --build-arg DOCKER_REGISTRY=docker.mirrors.ustc.edu.cn app
+```
+
 #### 端口占用
 ```bash
 # 检查端口占用

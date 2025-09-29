@@ -10,6 +10,23 @@ echo "🚀 开始部署记账App..."
 echo "📁 创建必要的目录..."
 mkdir -p docker/mysql docker/redis uploads logs
 
+# 检查Docker镜像加速配置
+echo "🔍 检查Docker镜像加速配置..."
+if docker info | grep -q "Registry Mirrors"; then
+    echo "✅ Docker镜像加速已配置"
+else
+    echo "⚠️ 未检测到Docker镜像加速配置"
+    echo "🚀 建议先配置镜像加速以提升构建速度:"
+    echo "   sudo ./docker/setup-docker-mirrors.sh"
+    echo ""
+    read -p "是否继续部署? (y/N): " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "已取消部署"
+        exit 1
+    fi
+fi
+
 # 检查Docker和Docker Compose是否安装
 if ! command -v docker &> /dev/null; then
     echo "❌ Docker 未安装，请先安装Docker"
