@@ -6,14 +6,12 @@ set -e
 
 echo "🏃‍♂️ 测试Docker镜像源下载速度..."
 
-# 镜像源列表
+# 镜像源列表 - 更新可用的镜像源
 declare -A MIRRORS=(
     ["Docker官方"]="docker.io"
     ["中科大镜像"]="docker.mirrors.ustc.edu.cn"
     ["网易镜像"]="hub-mirror.c.163.com"
     ["百度镜像"]="mirror.baidubce.com"
-    ["阿里云镜像"]="registry.cn-hangzhou.aliyuncs.com"
-    ["腾讯云镜像"]="ccr.ccs.tencentyun.com"
 )
 
 # 测试镜像

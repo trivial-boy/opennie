@@ -44,8 +44,8 @@ services:
       dockerfile: Dockerfile
       args:
         # 支持动态切换镜像源，提升构建速度
-        # 可选值: registry.cn-hangzhou.aliyuncs.com, docker.mirrors.ustc.edu.cn, hub-mirror.c.163.com
-        DOCKER_REGISTRY: registry.cn-hangzhou.aliyuncs.com
+        # 可选值: docker.mirrors.ustc.edu.cn, hub-mirror.c.163.com, mirror.baidubce.com
+        DOCKER_REGISTRY: docker.mirrors.ustc.edu.cn
     container_name: accounting_app
     restart: unless-stopped
     ports:

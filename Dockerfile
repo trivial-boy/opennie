@@ -1,6 +1,6 @@
 # 支持多镜像源的 Python 3.9.6 slim 镜像
 # 使用构建参数来支持不同的镜像源
-ARG DOCKER_REGISTRY=registry.cn-hangzhou.aliyuncs.com
+ARG DOCKER_REGISTRY=docker.mirrors.ustc.edu.cn
 FROM ${DOCKER_REGISTRY}/library/python:3.9.6-slim
 
 # 设置工作目录
