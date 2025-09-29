@@ -37,74 +37,81 @@ class AIService:
 数据库结构说明：
 
 1. 用户表 (users):
-   - id: 用户ID
+   - id: 用户ID (UUID)
    - username: 用户名
    - email: 邮箱
    - created_at: 创建时间
 
 2. 账本表 (accounts):
-   - id: 账本ID
-   - user_id: 用户ID
+   - id: 账本ID (UUID)
+   - user_id: 用户ID (UUID)
    - name: 账本名称
    - description: 描述
    - currency: 货币类型
    - created_at: 创建时间
 
 3. 资产表 (assets):
-   - id: 资产ID
-   - user_id: 用户ID
+   - id: 资产ID (UUID)
+   - user_id: 用户ID (UUID)
    - name: 资产名称
    - type: 资产类型 ('bank_account', 'credit_card', 'cash', 'investment', 'property', 'other')
-   - balance: 余额
+   - balance: 余额 (DECIMAL)
    - currency: 货币
    - include_in_total: 是否计入总资产
    - created_at: 创建时间
 
 4. 分类表 (categories):
-   - id: 分类ID
-   - user_id: 用户ID
+   - id: 分类ID (UUID)
+   - user_id: 用户ID (UUID)
    - name: 分类名称
    - type: 类型 ('income', 'expense', 'transfer')
    - icon: 图标
    - color: 颜色
-   - parent_id: 父分类ID
+   - parent_id: 父分类ID (UUID)
    - created_at: 创建时间
 
 5. 账单表 (bills):
-   - id: 账单ID
-   - user_id: 用户ID
-   - account_id: 账本ID
-   - asset_id: 资产ID
-   - category_id: 分类ID
-   - amount: 金额
+   - id: 账单ID (UUID)
+   - user_id: 用户ID (UUID)
+   - account_id: 账本ID (UUID)
+   - asset_id: 资产ID (UUID)
+   - category_id: 分类ID (UUID)
+   - amount: 金额 (DECIMAL)
    - currency: 货币
    - type: 类型 ('income', 'expense', 'transfer')
    - description: 描述
-   - date: 日期
-   - created_at: 创建时间
+   - date: 日期 (DATE)
+   - created_at: 创建时间 (TIMESTAMP)
 
 6. 债务表 (debts):
-   - id: 债务ID
-   - user_id: 用户ID
+   - id: 债务ID (UUID)
+   - user_id: 用户ID (UUID)
    - type: 类型 ('borrow_in', 'lend_out')
    - counterpart: 对方
-   - amount: 金额
+   - amount: 金额 (DECIMAL)
    - description: 描述
-   - due_date: 到期日期
-   - is_settled: 是否已结清
+   - due_date: 到期日期 (DATE)
+   - is_settled: 是否已结清 (BOOLEAN)
    - created_at: 创建时间
 
 7. 周期账单表 (recurring_bills):
-   - id: 周期账单ID
-   - user_id: 用户ID
+   - id: 周期账单ID (UUID)
+   - user_id: 用户ID (UUID)
    - name: 名称
-   - amount: 金额
-   - asset_id: 资产ID
-   - category_id: 分类ID
+   - amount: 金额 (DECIMAL)
+   - asset_id: 资产ID (UUID)
+   - category_id: 分类ID (UUID)
    - frequency: 频率 ('daily', 'weekly', 'monthly', 'yearly')
-   - next_due_date: 下次执行日期
-   - is_active: 是否激活
+   - next_due_date: 下次执行日期 (DATE)
+   - is_active: 是否激活 (BOOLEAN)
    - created_at: 创建时间
+
+时间查询注意事项：
+- 当前日期：使用 CURRENT_DATE
+- 上周：使用 CURRENT_DATE - INTERVAL '1 week' 到 CURRENT_DATE - INTERVAL '1 day'
+- 本周：使用 date_trunc('week', CURRENT_DATE) 到 CURRENT_DATE
+- 本月：使用 date_trunc('month', CURRENT_DATE) 到 CURRENT_DATE
+- 上月：使用 date_trunc('month', CURRENT_DATE - INTERVAL '1 month') 到 date_trunc('month', CURRENT_DATE) - INTERVAL '1 day'
 """
 
     async def generate_sql_prompt(self, user_message: str, user_id: str) -> str:
@@ -118,13 +125,21 @@ class AIService:
 用户ID: {user_id}
 
 重要规则：
-1. 所有查询必须包含 WHERE user_id = '{user_id}' 条件（除非是聚合统计）
+1. 所有查询必须包含 WHERE user_id = '{user_id}' 条件
 2. 只能生成 SELECT 查询语句，不允许 INSERT、UPDATE、DELETE
 3. 使用标准的PostgreSQL语法
-4. 对于日期范围查询，使用 DATE 函数和比较操作符
-5. 对于金额统计，使用 SUM、AVG、COUNT 等聚合函数
-6. 对于分类统计，使用 JOIN 连接相关表
-7. 返回格式必须是JSON，包含sql字段和explanation字段
+4. 时间范围查询规则：
+   - "上周": WHERE date >= CURRENT_DATE - INTERVAL '1 week' AND date < CURRENT_DATE
+   - "本周": WHERE date >= date_trunc('week', CURRENT_DATE) AND date <= CURRENT_DATE
+   - "本月": WHERE date >= date_trunc('month', CURRENT_DATE) AND date <= CURRENT_DATE
+   - "上月": WHERE date >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND date < date_trunc('month', CURRENT_DATE)
+   - "最近7天": WHERE date >= CURRENT_DATE - INTERVAL '7 days' AND date <= CURRENT_DATE
+5. 对于支出查询，必须添加 AND type = 'expense'::transactiontypeenum 条件
+6. 对于收入查询，必须添加 AND type = 'income'::transactiontypeenum 条件
+7. 金额字段需要转换为数值：CAST(amount AS DECIMAL) 或直接使用 amount::DECIMAL
+8. 使用 SUM、AVG、COUNT 等聚合函数进行统计
+9. 需要分类信息时，使用 LEFT JOIN categories c ON b.category_id = c.id
+10. 返回格式必须是JSON，包含sql字段和explanation字段
 
 用户问题：{user_message}
 
@@ -222,6 +237,29 @@ class AIService:
                 if re.search(pattern, sql_upper):
                     raise Exception(f"查询包含不允许的关键词: {keyword}")
 
+            # 修复枚举类型问题 - 将字符串值转换为正确的枚举转换语法
+            # 修复枚举类型问题 - 转换为文本比较避免枚举错误
+            sql = re.sub(
+                r"type\s*=\s*'income'",
+                r"type::text = 'income'",
+                sql,
+                flags=re.IGNORECASE,
+            )
+            sql = re.sub(
+                r"type\s*=\s*'expense'",
+                r"type::text = 'expense'",
+                sql,
+                flags=re.IGNORECASE,
+            )
+            sql = re.sub(
+                r"type\s*=\s*'transfer'",
+                r"type::text = 'transfer'",
+                sql,
+                flags=re.IGNORECASE,
+            )
+
+            logger.info(f"Executing SQL (after enum fix): {sql}")
+
             # 执行查询
             result = await db.execute(text(sql))
             rows = result.fetchall()
@@ -254,6 +292,8 @@ class AIService:
 
         except Exception as e:
             logger.error(f"SQL execution error: {str(e)}")
+            # 回滚事务以防止后续操作失败
+            await db.rollback()
             return {
                 "success": False,
                 "error": str(e),
