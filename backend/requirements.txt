@@ -52,3 +52,4 @@ mypy==1.7.1
 
 # API文档
 fastapi-users==12.1.2
+request
