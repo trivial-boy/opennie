@@ -2,7 +2,11 @@
 查询构建器
 """
 
-from sqlalchemy import Select
+try:
+    from sqlalchemy.sql.selectable import Select
+except ImportError:
+    # For SQLAlchemy 1.4 compatibility
+    from sqlalchemy.sql import Select
 
 
 class QueryBuilder:

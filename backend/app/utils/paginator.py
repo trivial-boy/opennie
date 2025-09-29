@@ -4,12 +4,18 @@
 
 from typing import List, TypeVar, Generic, Optional, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, Select
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import select, func
+
+try:
+    from sqlalchemy.sql.selectable import Select
+except ImportError:
+    # For SQLAlchemy 1.4 compatibility
+    from sqlalchemy.sql import Select
+
 from ..schemas.common import PaginatedResponse, PaginationMeta, PaginatedData
 from .pagination_params import PaginationParams
 
-T = TypeVar("T", bound=DeclarativeBase)
+T = TypeVar("T")
 
 
 class Paginator(Generic[T]):

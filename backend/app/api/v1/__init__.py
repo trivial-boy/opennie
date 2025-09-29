@@ -10,6 +10,9 @@ from .bills import router as bills_router
 from .assets import router as assets_router
 from .categories import router as categories_router
 from .budgets import router as budgets_router
+from .debts import router as debts_router
+from .reports_fixed import router as reports_router
+from .reports_simple import router as reports_simple_router
 
 api_router = APIRouter()
 
@@ -21,3 +24,8 @@ api_router.include_router(bills_router, prefix="/bills", tags=["账单"])
 api_router.include_router(assets_router, prefix="/assets", tags=["资产"])
 api_router.include_router(categories_router, prefix="/categories", tags=["分类"])
 api_router.include_router(budgets_router, prefix="/budgets", tags=["预算"])
+api_router.include_router(debts_router, prefix="/debts", tags=["债务管理"])
+api_router.include_router(reports_router, prefix="/reports", tags=["报表统计"])
+api_router.include_router(
+    reports_simple_router, prefix="/reports-simple", tags=["报表统计-简化测试"]
+)

@@ -85,6 +85,20 @@ class ErrorResponse(BaseModel):
         json_encoders = {datetime: lambda v: v.isoformat() + "Z"}
 
 
+class MessageResponse(BaseModel):
+    """简单消息响应模型"""
+
+    success: bool = Field(True, description="操作是否成功")
+    message: str = Field(..., description="响应消息")
+    code: int = Field(200, description="状态码")
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow, description="响应时间戳"
+    )
+
+    class Config:
+        json_encoders = {datetime: lambda v: v.isoformat() + "Z"}
+
+
 # 查询参数基类
 class BaseQueryParams(BaseModel):
     """基础查询参数"""

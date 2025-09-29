@@ -4,7 +4,12 @@
 
 from typing import List, Optional, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import Select
+
+try:
+    from sqlalchemy.sql.selectable import Select
+except ImportError:
+    # For SQLAlchemy 1.4 compatibility
+    from sqlalchemy.sql import Select
 from ..schemas.common import PaginatedResponse, PaginationMeta
 from .pagination_params import PaginationParams
 from .paginator import Paginator
