@@ -30,8 +30,6 @@ RUN apt-get update && apt-get install -y \
 # 复制 requirements 文件（容器启动时安装）
 COPY backend/requirements-docker.txt requirements.txt
 
-# 复制应用代码
-COPY backend/ .
 
 # 确保启动脚本有执行权限
 RUN chmod +x start.sh

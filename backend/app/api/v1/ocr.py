@@ -8,18 +8,20 @@ from typing import Union
 import logging
 
 from ...schemas.ocr import OCRResponse, OCRSimpleResponse
+from ...schemas.common import ResponseModel
 from ...services.baidu_ocr import ocr_service
-from ...core.response import create_success_response, create_error_response
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ocr", tags=["OCR图像识别"])
 
 
-@router.post("/recognize", response_model=OCRResponse, summary="图像文字识别")
+@router.post(
+    "/recognize", response_model=ResponseModel[OCRResponse], summary="图像文字识别"
+)
 async def recognize_image(
     file: UploadFile = File(..., description="要识别的图像文件"),
-) -> JSONResponse:
+):
     """
     识别图像中的文字内容
 
@@ -60,11 +62,12 @@ async def recognize_image(
 
         if result["success"]:
             logger.info(f"OCR识别成功，识别到 {result.get('line_count', 0)} 行文字")
-            return create_success_response(data=result, message="图像文字识别成功")
+            return ResponseModel(data=result, message="图像文字识别成功")
         else:
             logger.error(f"OCR识别失败: {result.get('error', '未知错误')}")
-            return create_error_response(
-                message="图像文字识别失败", details=result.get("error", "未知错误")
+            raise HTTPException(
+                status_code=500,
+                detail=f"图像文字识别失败: {result.get('error', '未知错误')}",
             )
 
     except HTTPException:
@@ -76,12 +79,12 @@ async def recognize_image(
 
 @router.post(
     "/recognize/simple",
-    response_model=OCRSimpleResponse,
+    response_model=ResponseModel[OCRSimpleResponse],
     summary="图像文字识别（简化版）",
 )
 async def recognize_image_simple(
     file: UploadFile = File(..., description="要识别的图像文件"),
-) -> JSONResponse:
+):
     """
     识别图像中的文字内容（简化版）
 
@@ -116,12 +119,12 @@ async def recognize_image_simple(
         result = ocr_service.recognize_text_from_bytes(file_content)
 
         if result["success"]:
-            return create_success_response(
+            return ResponseModel(
                 data={"text": result.get("text", "")}, message="识别成功"
             )
         else:
             logger.error(f"OCR识别失败: {result.get('error', '未知错误')}")
-            return create_success_response(
+            return ResponseModel(
                 data={"text": ""},
                 message=f"识别失败: {result.get('error', '未知错误')}",
             )
@@ -131,28 +134,28 @@ async def recognize_image_simple(
     except Exception as e:
         logger.error(f"OCR简化处理异常: {e}")
         # 简化版接口即使出错也返回空文本，而不是抛出异常
-        return create_success_response(data={"text": ""}, message=f"处理异常: {str(e)}")
+        return ResponseModel(data={"text": ""}, message=f"处理异常: {str(e)}")
 
 
 @router.get("/health", summary="OCR服务健康检查")
 async def ocr_health_check():
     """检查OCR服务是否正常"""
     if not ocr_service:
-        return create_error_response(
-            message="OCR服务未配置", details="百度OCR API密钥未设置"
+        raise HTTPException(
+            status_code=500, detail="OCR服务未配置: 百度OCR API密钥未设置"
         )
 
     try:
         # 尝试获取访问令牌来验证配置
         token = ocr_service.get_access_token()
         if token:
-            return create_success_response(
+            return ResponseModel(
                 data={"status": "healthy", "service": "baidu_ocr"},
                 message="OCR服务正常",
             )
         else:
-            return create_error_response(
-                message="OCR服务配置错误", details="无法获取访问令牌"
+            raise HTTPException(
+                status_code=500, detail="OCR服务配置错误: 无法获取访问令牌"
             )
     except Exception as e:
-        return create_error_response(message="OCR服务异常", details=str(e))
+        raise HTTPException(status_code=500, detail=f"OCR服务异常: {str(e)}")
