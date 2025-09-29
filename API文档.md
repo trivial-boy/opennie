@@ -799,7 +799,7 @@ GET /bills?account_id=uuid&page=1&size=20&start_date=2024-01-01&end_date=2024-01
 
 **查询参数:**
 - `account_id`: 账本ID (可选)
-- `type`: 类型 (income/expense/transfer)
+- `type`: 类型 (income/expensessfer)
 - `category_id`: 分类ID
 - `start_date`: 开始日期
 - `end_date`: 结束日期
@@ -938,8 +938,14 @@ DELETE /bills/{bill_id}
 
 ### 5.1 获取资产列表
 ```http
-GET /assets?type=bank_account&include_in_total=true
+GET /api/v1/assets?page=1&size=20&type=bank_account&include_in_total=true
 ```
+
+**查询参数：**
+- `page`: 页码 (默认: 1)
+- `size`: 每页数量 (默认: 20, 最大: 100) 
+- `type`: 资产类型过滤 (可选)
+- `include_in_total`: 是否计入总资产过滤 (可选)
 
 **响应:**
 ```json

@@ -24,8 +24,8 @@ async def test_account_creation():
     await init_database()
 
     async with db.get_session() as session:
-        # 查找测试用户
-        stmt = select(User).where(User.email == "testaccounts@example.com")
+        # 查找测试用户 (使用存在的用户)
+        stmt = select(User).where(User.email.like("test_%@example.com"))
         result = await session.execute(stmt)
         user = result.scalar_one_or_none()
 

@@ -92,6 +92,70 @@ async def get_assets(
     )
 
 
+@router.get("/overview", response_model=ResponseModel[dict], summary="获取资产总览")
+async def get_assets_overview(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """获取资产总览统计"""
+    # 查询用户所有资产
+    stmt = select(Asset).where(Asset.user_id == current_user.id)
+    result = await db.execute(stmt)
+    assets = result.scalars().all()
+
+    # 计算统计信息
+    total_assets = sum(
+        float(asset.balance)
+        for asset in assets
+        if asset.include_in_total and asset.balance >= 0
+    )
+    positive_assets = sum(
+        float(asset.balance) for asset in assets if asset.balance >= 0
+    )
+    liabilities = abs(
+        sum(float(asset.balance) for asset in assets if asset.balance < 0)
+    )
+    net_worth = positive_assets - liabilities
+    asset_count = len(assets)
+    liability_ratio = liabilities / positive_assets if positive_assets > 0 else 0
+
+    # 按类型分组统计
+    asset_breakdown = {}
+    for asset in assets:
+        asset_type = asset.type
+        if asset_type not in asset_breakdown:
+            asset_breakdown[asset_type] = {"count": 0, "total_balance": 0}
+        asset_breakdown[asset_type]["count"] += 1
+        asset_breakdown[asset_type]["total_balance"] += float(asset.balance)
+
+    # 转换为列表格式并计算百分比
+    breakdown_list = []
+    for asset_type, data in asset_breakdown.items():
+        percentage = (
+            data["total_balance"] / positive_assets if positive_assets > 0 else 0
+        )
+        breakdown_list.append(
+            {
+                "type": asset_type,
+                "count": data["count"],
+                "total_balance": data["total_balance"],
+                "percentage": percentage,
+            }
+        )
+
+    overview = {
+        "total_assets": total_assets,
+        "positive_assets": positive_assets,
+        "liabilities": liabilities,
+        "net_worth": net_worth,
+        "asset_count": asset_count,
+        "liability_ratio": liability_ratio,
+        "asset_breakdown": breakdown_list,
+    }
+
+    return ResponseModel(data=overview)
+
+
 @router.get(
     "/{asset_id}", response_model=ResponseModel[AssetRead], summary="获取资产详情"
 )
@@ -161,67 +225,3 @@ async def delete_asset(
     await db.commit()
 
     return ResponseModel(data={"id": str(asset_id)}, message="资产删除成功")
-
-
-@router.get("/overview", response_model=ResponseModel[dict], summary="获取资产总览")
-async def get_assets_overview(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """获取资产总览统计"""
-    # 查询用户所有资产
-    stmt = select(Asset).where(Asset.user_id == current_user.id)
-    result = await db.execute(stmt)
-    assets = result.scalars().all()
-
-    # 计算统计信息
-    total_assets = sum(
-        float(asset.balance)
-        for asset in assets
-        if asset.include_in_total and asset.balance >= 0
-    )
-    positive_assets = sum(
-        float(asset.balance) for asset in assets if asset.balance >= 0
-    )
-    liabilities = abs(
-        sum(float(asset.balance) for asset in assets if asset.balance < 0)
-    )
-    net_worth = positive_assets - liabilities
-    asset_count = len(assets)
-    liability_ratio = liabilities / positive_assets if positive_assets > 0 else 0
-
-    # 按类型分组统计
-    asset_breakdown = {}
-    for asset in assets:
-        asset_type = asset.type
-        if asset_type not in asset_breakdown:
-            asset_breakdown[asset_type] = {"count": 0, "total_balance": 0}
-        asset_breakdown[asset_type]["count"] += 1
-        asset_breakdown[asset_type]["total_balance"] += float(asset.balance)
-
-    # 转换为列表格式并计算百分比
-    breakdown_list = []
-    for asset_type, data in asset_breakdown.items():
-        percentage = (
-            data["total_balance"] / positive_assets if positive_assets > 0 else 0
-        )
-        breakdown_list.append(
-            {
-                "type": asset_type,
-                "count": data["count"],
-                "total_balance": data["total_balance"],
-                "percentage": percentage,
-            }
-        )
-
-    overview = {
-        "total_assets": total_assets,
-        "positive_assets": positive_assets,
-        "liabilities": liabilities,
-        "net_worth": net_worth,
-        "asset_count": asset_count,
-        "liability_ratio": liability_ratio,
-        "asset_breakdown": breakdown_list,
-    }
-
-    return ResponseModel(data=overview)
