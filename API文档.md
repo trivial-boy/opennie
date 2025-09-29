@@ -368,6 +368,309 @@ Authorization: Bearer <access_token>
 
 ---
 
+## 9. 周期账单管理 (Recurring Bills) ✅ [已实现]
+
+### 9.1 获取周期账单列表
+```http
+GET /recurring-bills?page=1&size=20&account_id=uuid&frequency=monthly&is_active=true
+```
+
+**查询参数:**
+- `account_id`: 账本ID (可选)
+- `frequency`: 周期频率 (daily/weekly/monthly/yearly)
+- `is_active`: 是否启用
+- `page`: 页码
+- `size`: 每页数量
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "uuid",
+        "account_id": "uuid",
+        "asset_id": "uuid",
+        "category_id": "uuid",
+        "name": "房租",
+        "amount": 3000.00,
+        "currency": "CNY",
+        "type": "expense",
+        "frequency": "monthly",
+        "start_date": "2024-01-01",
+        "end_date": "2024-12-31",
+        "next_execution_date": "2024-02-01",
+        "description": "每月房租支出",
+        "is_active": true,
+        "created_at": "2024-01-01T00:00:00Z",
+        "updated_at": "2024-01-01T00:00:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "size": 20,
+      "total": 5,
+      "pages": 1,
+      "has_next": false,
+      "has_prev": false
+    }
+  }
+}
+```
+
+### 9.2 创建周期账单
+```http
+POST /recurring-bills
+```
+
+**请求体:**
+```json
+{
+  "account_id": "uuid",
+  "asset_id": "uuid",
+  "category_id": "uuid",
+  "name": "工资收入",
+  "amount": 8000.00,
+  "currency": "CNY",
+  "type": "income",
+  "frequency": "monthly",
+  "start_date": "2024-01-01",
+  "end_date": "2024-12-31",
+  "description": "每月工资收入",
+  "is_active": true
+}
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "account_id": "uuid",
+    "asset_id": "uuid",
+    "category_id": "uuid",
+    "name": "工资收入",
+    "amount": 8000.00,
+    "currency": "CNY",
+    "type": "income",
+    "frequency": "monthly",
+    "start_date": "2024-01-01",
+    "end_date": "2024-12-31",
+    "next_execution_date": "2024-01-01",
+    "description": "每月工资收入",
+    "is_active": true,
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  },
+  "message": "周期账单创建成功",
+  "code": 200
+}
+```
+
+### 9.3 获取周期账单详情
+```http
+GET /recurring-bills/{recurring_bill_id}
+```
+
+### 9.4 更新周期账单
+```http
+PUT /recurring-bills/{recurring_bill_id}
+```
+
+### 9.5 删除周期账单
+```http
+DELETE /recurring-bills/{recurring_bill_id}
+```
+
+### 9.6 执行周期账单
+```http
+POST /recurring-bills/{recurring_bill_id}/execute
+```
+
+**请求体:**
+```json
+{
+  "description": "2024年1月工资发放",
+  "amount": 8500.00
+}
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "bill": {
+      "id": "uuid",
+      "account_id": "uuid",
+      "asset_id": "uuid",
+      "category_id": "uuid",
+      "amount": 8500.00,
+      "currency": "CNY",
+      "type": "income",
+      "description": "2024年1月工资发放",
+      "date": "2024-01-15",
+      "created_at": "2024-01-15T00:00:00Z"
+    },
+    "next_execution_date": "2024-02-01"
+  },
+  "message": "周期账单执行成功",
+  "code": 200
+}
+```
+
+### 9.7 切换周期账单状态
+```http
+POST /recurring-bills/{recurring_bill_id}/toggle
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "is_active": false,
+    "message": "周期账单已禁用"
+  },
+  "message": "操作成功",
+  "code": 200
+}
+```
+
+### 9.8 获取周期账单汇总
+```http
+GET /recurring-bills/summary?account_id=uuid
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "total_count": 10,
+    "active_count": 8,
+    "monthly_estimated_income": 8000.00,
+    "monthly_estimated_expense": 5500.00,
+    "net_monthly_flow": 2500.00,
+    "frequency_distribution": {
+      "daily": 2,
+      "weekly": 1,
+      "monthly": 6,
+      "yearly": 1
+    },
+    "type_distribution": {
+      "income": 3,
+      "expense": 7
+    },
+    "next_executions": [
+      {
+        "id": "uuid",
+        "name": "房租",
+        "amount": 3000.00,
+        "type": "expense",
+        "next_execution_date": "2024-02-01"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 10. 高级报表功能 (Advanced Reports) ✅ [已实现]
+
+### 10.1 分类统计
+```http
+GET /reports/category-stats?account_id=uuid&start_date=2024-01-01&end_date=2024-01-31&type=expense&include_subcategories=true
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "period": {
+      "start_date": "2024-01-01",
+      "end_date": "2024-01-31"
+    },
+    "type": "expense",
+    "total_amount": 8000.00,
+    "categories": [
+      {
+        "category_id": "uuid",
+        "category_name": "餐饮",
+        "total_amount": 2500.00,
+        "percentage": 31.25,
+        "transaction_count": 25,
+        "average_amount": 100.00,
+        "subcategories": [
+          {
+            "category_id": "uuid",
+            "category_name": "早餐",
+            "total_amount": 800.00,
+            "percentage": 10.0,
+            "transaction_count": 8
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 10.2 对比分析
+```http
+GET /reports/comparison-analysis?account_id=uuid&current_start=2024-01-01&current_end=2024-01-31&compare_start=2023-01-01&compare_end=2023-01-31&type=both
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "current_period": {
+      "start_date": "2024-01-01",
+      "end_date": "2024-01-31",
+      "total_income": 15000.00,
+      "total_expense": 8000.00,
+      "net_amount": 7000.00,
+      "transaction_count": 45
+    },
+    "compare_period": {
+      "start_date": "2023-01-01",
+      "end_date": "2023-01-31",
+      "total_income": 12000.00,
+      "total_expense": 7000.00,
+      "net_amount": 5000.00,
+      "transaction_count": 38
+    },
+    "comparison": {
+      "income_change": 3000.00,
+      "income_change_percentage": 25.0,
+      "expense_change": 1000.00,
+      "expense_change_percentage": 14.29,
+      "net_change": 2000.00,
+      "net_change_percentage": 40.0,
+      "transaction_count_change": 7
+    },
+    "category_comparisons": [
+      {
+        "category_name": "餐饮",
+        "current_amount": 2500.00,
+        "compare_amount": 2000.00,
+        "change": 500.00,
+        "change_percentage": 25.0
+      }
+    ]
+  }
+}
+```
+
+---
+
 ## 待实现的功能
 
 以下功能在API设计中规划但尚未实现：
@@ -926,11 +1229,11 @@ GET /budgets/{budget_id}/progress
 
 ---
 
-## 8. 报表统计 (Reports) [待实现]
+## 8. 报表统计 (Reports) ✅ [已实现]
 
 ### 8.1 收支汇总
 ```http
-GET /reports/summary?account_id=uuid&start_date=2024-01-01&end_date=2024-01-31&group_by=month
+GET /reports/income-expense-summary?start_date=2025-09-01&end_date=2025-09-30&period=month&account_id=uuid&category_ids=uuid1,uuid2
 ```
 
 **响应:**
@@ -1088,11 +1391,11 @@ GET /reports/comparison?account_id=uuid&period1_start=2024-01-01&period1_end=202
 
 ---
 
-## 8. 债务管理 (Debts) [待实现]
+## 9. 债务管理 (Debts) ✅ [已实现]
 
-### 8.1 获取债务列表
+### 9.1 获取债务列表
 ```http
-GET /debts?type=borrow_in&is_settled=false
+GET /debts?type=borrow_in&is_settled=false&page=1&size=20
 ```
 
 **响应:**
@@ -1143,14 +1446,33 @@ PUT /debts/{debt_id}
 POST /debts/{debt_id}/settle
 ```
 
-### 8.5 删除债务记录
+### 9.5 删除债务记录
 ```http
 DELETE /debts/{debt_id}
 ```
 
+### 9.6 获取债务统计汇总 ✅ [新增]
+```http
+GET /debts/summary
+```
+
+**响应:**
+```json
+{
+  "total_borrow_in": "5000.00",
+  "total_lend_out": "2000.00", 
+  "net_amount": "3000.00",
+  "settled_count": 5,
+  "unsettled_count": 3,
+  "overdue_count": 1,
+  "due_soon_count": 2,
+  "average_debt_amount": "875.0000000000000000"
+}
+```
+
 ---
 
-## 9. 周期账单 (Recurring Bills) [待实现]
+## 9. 周期账单 (Recurring Bills) ✅ [已实现]
 
 ### 9.1 获取周期账单列表
 ```http
@@ -1616,12 +1938,24 @@ wss://api.billapp.com/ws?token=jwt_token
 - 分类层级结构
 - 分类图标和颜色
 
+#### 7. 债务管理 - 100% 完成 ✨ [新增 2025-09-29]
+- ✅ 创建债务记录 (`POST /debts`)
+- ✅ 获取债务列表 (`GET /debts`) - 支持类型筛选和分页
+- ✅ 更新债务记录 (`PUT /debts/{id}`)
+- ✅ 结清债务 (`POST /debts/{id}/settle`)
+- ✅ 删除债务记录 (`DELETE /debts/{id}`)
+- ✅ 债务统计汇总 (`GET /debts/summary`) - 包含借入/借出统计、到期提醒
+
+#### 8. 报表统计 - 基础版完成 ✨ [新增 2025-09-29]
+- ✅ 收支汇总 (`GET /reports/income-expense-summary`) - 支持时间筛选和账本筛选
+- ✅ 数据准确性验证 - 已通过实际账单数据测试验证
+- ⏳ 趋势分析 (接口已定义，待实现)
+- ⏳ 分类统计 (接口已定义，待实现)  
+- ⏳ 对比分析 (接口已定义，待实现)
+
 ### ⏳ 待开发模块
 
-- 预算管理 (Budgets) - 中等优先级
-- 报表统计 (Reports) - 中等优先级
-- 债务管理 (Debts) - 低优先级
-- 周期账单 (Recurring Bills) - 低优先级
+- 周期账单 (Recurring Bills) - 中等优先级
 - AI对话 (AI) - 扩展功能
 - 文件上传 (Uploads) - 扩展功能
 - 通知提醒 (Notifications) - 扩展功能
