@@ -15,6 +15,7 @@ from .recurring_bills import router as recurring_bills_router
 from .reports_fixed import router as reports_router
 from .reports_simple import router as reports_simple_router
 from .ocr import router as ocr_router
+from .sql import router as sql_router
 
 api_router = APIRouter()
 
@@ -35,3 +36,4 @@ api_router.include_router(
     reports_simple_router, prefix="/reports-simple", tags=["报表统计-简化测试"]
 )
 api_router.include_router(ocr_router, tags=["OCR图像识别"])
+api_router.include_router(sql_router, prefix="/sql", tags=["SQL查询"])
