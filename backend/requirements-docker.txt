@@ -31,6 +31,7 @@ pydantic-settings==2.11.0
 
 # HTTP客户端
 httpx==0.25.2
+requests==2.31.0
 
 # 日志
 loguru==0.7.2

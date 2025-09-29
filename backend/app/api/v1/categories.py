@@ -177,12 +177,6 @@ async def update_category(
             status_code=status.HTTP_404_NOT_FOUND, detail="分类不存在或无权限"
         )
 
-    # 检查系统分类不允许修改
-    if category.is_system:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="系统分类不允许修改"
-        )
-
     update_data = category_update.dict(exclude_unset=True)
 
     # 如果要更新名称，检查同级分类名称是否重复
@@ -288,12 +282,6 @@ async def delete_category(
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="分类不存在或无权限"
-        )
-
-    # 检查系统分类不允许删除
-    if category.is_system:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="系统分类不允许删除"
         )
 
     # 检查是否有子分类
