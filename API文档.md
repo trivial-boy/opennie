@@ -1008,6 +1008,274 @@ GET /assets/overview
 {
   "success": true,
   "data": {
+    "total_assets": 45000.00,
+    "total_cash": 8000.00,
+    "total_bank_accounts": 25000.00,
+    "total_credit_cards": -2000.00,
+    "total_investments": 12000.00,
+    "total_others": 2000.00,
+    "currency": "CNY",
+    "asset_distribution": [
+      {
+        "type": "bank_account",
+        "count": 3,
+        "total_balance": 25000.00,
+        "percentage": 55.56
+      },
+      {
+        "type": "investment",
+        "count": 2,
+        "total_balance": 12000.00,
+        "percentage": 26.67
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 6. AI智能对话 (AI Chat) ✅ [已实现]
+
+AI对话功能使用Kimi大语言模型，支持自然语言查询财务数据，自动生成SQL并执行查询。
+
+### 6.1 发送AI对话消息
+```http
+POST /ai/chat
+```
+
+**请求头:**
+```
+Content-Type: application/json
+```
+
+**请求体:**
+```json
+{
+  "message": "查询我这个月的总支出",
+  "user_id": "uuid",
+  "account_id": "uuid",
+  "conversation_id": "uuid"
+}
+```
+
+**字段说明:**
+- `message`: 用户的自然语言查询 (必需)
+- `user_id`: 用户ID (必需)
+- `account_id`: 指定查询的账本ID (可选，默认查询用户所有账本)
+- `conversation_id`: 对话会话ID (可选，用于继续之前的对话)
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "response": "根据查询结果，您本月(2024年1月)的总支出为 ¥8,500.00。主要支出类别包括：餐饮 ¥2,500.00、交通 ¥1,200.00、购物 ¥1,800.00等。",
+    "sql_query": "SELECT SUM(amount) as total_expense FROM bills WHERE type = 'expense' AND EXTRACT(YEAR FROM date) = 2024 AND EXTRACT(MONTH FROM date) = 1",
+    "query_result": [
+      {
+        "total_expense": 8500.00
+      }
+    ],
+    "conversation_id": "conv_uuid_12345",
+    "created_at": "2024-01-15T10:30:00Z"
+  },
+  "message": "AI对话成功",
+  "code": 200,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+**错误响应示例:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AI_SERVICE_ERROR",
+    "message": "AI服务暂时不可用，请稍后重试",
+    "details": "Kimi API连接超时"
+  },
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 6.2 获取AI对话建议
+```http
+GET /ai/suggestions?account_id=uuid
+```
+
+**查询参数:**
+- `account_id`: 账本ID (可选)
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "suggestions": [
+      "查询我这个月的总收入和支出",
+      "分析我的餐饮支出趋势",
+      "查看我的资产分布情况",
+      "比较这个月和上个月的支出差异",
+      "查询我的信用卡账单明细"
+    ],
+    "categories": [
+      {
+        "name": "收支分析",
+        "suggestions": [
+          "查询我这个月的总支出",
+          "分析我的收入来源"
+        ]
+      },
+      {
+        "name": "趋势分析", 
+        "suggestions": [
+          "比较最近三个月的支出趋势",
+          "查看我的储蓄率变化"
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 6.3 获取对话历史
+```http
+GET /ai/conversations?page=1&size=20
+```
+
+**查询参数:**
+- `page`: 页码 (默认: 1)
+- `size`: 每页数量 (默认: 20)
+- `account_id`: 账本ID过滤 (可选)
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "conv_uuid_12345",
+        "account_id": "uuid",
+        "title": "月度支出查询",
+        "message_count": 5,
+        "last_message": "查询我这个月的总支出",
+        "last_response": "您本月的总支出为 ¥8,500.00",
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:35:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "size": 20,
+      "total": 10,
+      "pages": 1,
+      "has_next": false,
+      "has_prev": false
+    }
+  }
+}
+```
+
+### 6.4 获取对话详情
+```http
+GET /ai/conversations/{conversation_id}
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "conv_uuid_12345",
+    "account_id": "uuid",
+    "title": "月度支出查询",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:35:00Z",
+    "messages": [
+      {
+        "id": "msg_uuid_1",
+        "role": "user",
+        "content": "查询我这个月的总支出",
+        "created_at": "2024-01-15T10:30:00Z"
+      },
+      {
+        "id": "msg_uuid_2", 
+        "role": "assistant",
+        "content": "根据查询结果，您本月的总支出为 ¥8,500.00",
+        "sql_query": "SELECT SUM(amount) as total_expense FROM bills WHERE type = 'expense'",
+        "query_result": [{"total_expense": 8500.00}],
+        "created_at": "2024-01-15T10:30:15Z"
+      }
+    ]
+  }
+}
+```
+
+### 6.5 删除对话
+```http
+DELETE /ai/conversations/{conversation_id}
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "对话删除成功"
+  },
+  "code": 200
+}
+```
+
+### AI对话功能特性
+
+#### 🤖 智能查询能力
+- **自然语言理解**: 支持中文自然语言查询，如"查询我这个月的餐饮支出"
+- **上下文感知**: 支持多轮对话，能够理解对话上下文
+- **智能SQL生成**: 自动将自然语言转换为准确的SQL查询
+- **数据安全**: 内置SQL注入防护，确保查询安全
+
+#### 📊 查询类型支持
+- **基础查询**: 收入、支出、余额查询
+- **分类分析**: 按分类、资产、时间维度分析
+- **趋势分析**: 月度、年度趋势对比
+- **统计汇总**: 总额、平均值、排名等统计信息
+
+#### 💬 对话管理
+- **会话持续**: 支持长期对话会话管理
+- **历史记录**: 完整的对话历史保存和查询
+- **智能建议**: 根据用户数据提供查询建议
+
+#### 🔧 技术特性
+- **Kimi模型**: 使用先进的Kimi大语言模型(kimi-k2-0905-preview)
+- **异步处理**: 异步HTTP请求，响应速度快
+- **错误处理**: 完善的错误处理和降级机制
+- **数据格式化**: 自动处理Decimal等数据类型
+
+#### 示例查询语句
+```
+✅ "查询我这个月的总支出"
+✅ "分析我的餐饮支出趋势" 
+✅ "比较这个月和上个月的收支情况"
+✅ "查看我的银行卡余额"
+✅ "统计我的资产分布"
+✅ "查询最近一周的交易记录"
+```
+
+## 7. 分类管理 (Categories) ✅
+
+### 7.1 获取分类列表
+```http
+GET /categories?type=expense&parent_id=uuid
+```
+
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
     "total_assets": 50000.00,
     "positive_assets": 52000.00,
     "liabilities": 2000.00,

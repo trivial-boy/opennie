@@ -13,6 +13,9 @@ alembic==1.12.1
 redis==5.0.1
 aioredis==2.0.1
 
+# HTTP客户端
+aiohttp==3.9.1
+
 # 认证和安全
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4

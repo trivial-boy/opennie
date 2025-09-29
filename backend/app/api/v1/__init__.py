@@ -16,6 +16,7 @@ from .reports_fixed import router as reports_router
 from .reports_simple import router as reports_simple_router
 from .ocr import router as ocr_router
 from .sql import router as sql_router
+from .ai import router as ai_router
 
 api_router = APIRouter()
 
@@ -37,3 +38,4 @@ api_router.include_router(
 )
 api_router.include_router(ocr_router, tags=["OCR图像识别"])
 api_router.include_router(sql_router, prefix="/sql", tags=["SQL查询"])
+api_router.include_router(ai_router, prefix="/ai", tags=["AI对话"])

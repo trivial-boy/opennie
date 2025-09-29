@@ -110,6 +110,15 @@ class Settings:
         self.LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
         self.LOG_FORMAT = os.getenv("LOG_FORMAT", "detailed")
 
+        # AI配置 - Kimi
+        self.KIMI_API_URL = os.getenv("KIMI_API_URL", "https://api.moonshot.cn/v1")
+        self.KIMI_API_KEY = os.getenv(
+            "KIMI_API_KEY", "sk-EaKyYu4Lu0kM83ifCzagajqs4P7tgv1KhEccMNnWypAe3Vwk"
+        )
+        self.KIMI_MODEL = os.getenv("KIMI_MODEL", "kimi-k2-0905-preview")
+        self.KIMI_MAX_TOKENS = int(os.getenv("KIMI_MAX_TOKENS", "4000"))
+        self.KIMI_TEMPERATURE = float(os.getenv("KIMI_TEMPERATURE", "0.3"))
+
     def _load_environment_config(self):
         """强制加载开发环境配置文件"""
         try:
