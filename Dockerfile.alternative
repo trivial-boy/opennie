@@ -1,9 +1,8 @@
 # 替代Dockerfile - 如果主Dockerfile仍有问题可使用此版本
 # 使用官方镜像不修改软件源，只优化pip源
 
-# 支持多镜像源的 Python 3.9.6 slim 镜像
-ARG DOCKER_REGISTRY=docker.mirrors.ustc.edu.cn
-FROM ${DOCKER_REGISTRY}/library/python:3.9.6-slim
+# 使用Docker官方 Python 3.9.6 slim 镜像
+FROM python:3.9.6-slim
 
 # 设置工作目录
 WORKDIR /app

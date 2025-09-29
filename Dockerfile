@@ -1,7 +1,5 @@
-# 支持多镜像源的 Python 3.9.6 slim 镜像
-# 使用构建参数来支持不同的镜像源
-ARG DOCKER_REGISTRY=docker.mirrors.ustc.edu.cn
-FROM ${DOCKER_REGISTRY}/library/python:3.9.6-slim
+# 使用Docker官方 Python 3.9.6 slim 镜像
+FROM python:3.9.6-slim
 
 # 设置工作目录
 WORKDIR /app
@@ -29,14 +27,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# 复制 requirements 文件
+# 复制 requirements 文件（容器启动时安装）
 COPY backend/requirements-docker.txt requirements.txt
-
-# 安装 Python 依赖
-RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码
 COPY backend/ .
+
+# 确保启动脚本有执行权限
+RUN chmod +x start.sh
 
 # 创建非root用户
 RUN adduser --disabled-password --gecos '' --shell /bin/bash user && \
@@ -46,12 +44,12 @@ USER user
 # 创建上传目录
 RUN mkdir -p uploads
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+# 健康检查（延长启动时间以等待依赖安装）
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # 暴露端口
 EXPOSE 8000
 
-# 启动命令
-CMD ["python", "run.py"]
+# 使用启动脚本（会在容器启动时安装依赖）
+CMD ["./start.sh"]

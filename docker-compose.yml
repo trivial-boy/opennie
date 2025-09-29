@@ -42,10 +42,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        # 支持动态切换镜像源，提升构建速度
-        # 可选值: docker.mirrors.ustc.edu.cn, hub-mirror.c.163.com, mirror.baidubce.com
-        DOCKER_REGISTRY: docker.mirrors.ustc.edu.cn
     container_name: accounting_app
     restart: unless-stopped
     ports:
@@ -64,8 +60,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 40s
+      retries: 5
+      start_period: 120s # 延长启动时间等待依赖安装
 
 volumes:
   mysql_data:

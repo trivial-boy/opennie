@@ -50,9 +50,9 @@ docker image prune -f
 echo "🔨 构建并启动服务..."
 docker-compose up --build -d
 
-# 等待服务启动
-echo "⏳ 等待服务启动..."
-sleep 30
+# 等待服务启动（容器启动时会安装依赖，需要更长时间）
+echo "⏳ 等待服务启动（正在安装依赖）..."
+sleep 60
 
 # 检查服务状态
 echo "🔍 检查服务状态..."
@@ -80,8 +80,9 @@ echo ""
 echo "🎉 部署完成！"
 echo ""
 echo "📋 服务信息:"
-echo "  - 应用地址: http://localhost:8000"
-echo "  - API文档: http://localhost:8000/docs"
+echo "  - 本地访问: http://localhost:8000"
+echo "  - 内网访问: http://172.16.2.50:8000"
+echo "  - API文档: http://172.16.2.50:8000/docs"
 echo "  - MySQL: localhost:3306"
 echo "  - Redis: localhost:6379"
 echo ""
