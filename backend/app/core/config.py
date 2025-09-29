@@ -65,13 +65,11 @@ class Settings:
             os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7")
         )
 
-        # CORS配置
-        self.CORS_ORIGINS = self._get_list_from_env("CORS_ORIGINS", ["*"])
-        self.CORS_ALLOW_CREDENTIALS = (
-            os.getenv("CORS_ALLOW_CREDENTIALS", "true").lower() == "true"
-        )
-        self.ALLOWED_METHODS = self._get_list_from_env("ALLOWED_METHODS", ["*"])
-        self.ALLOWED_HEADERS = self._get_list_from_env("ALLOWED_HEADERS", ["*"])
+        # CORS配置 - 完全允许跨域
+        self.CORS_ORIGINS = ["*"]  # 允许所有源
+        self.CORS_ALLOW_CREDENTIALS = True  # 允许凭证
+        self.ALLOWED_METHODS = ["*"]  # 允许所有方法
+        self.ALLOWED_HEADERS = ["*"]  # 允许所有头部
 
         # 速率限制配置
         self.RATE_LIMIT_REQUESTS = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
