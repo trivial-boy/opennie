@@ -13,7 +13,6 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
-      - ./backend:/app/
     env_file:
       - ./docker/.env.docker
     networks:
