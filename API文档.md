@@ -1101,53 +1101,40 @@ Content-Type: application/json
 
 ### 6.2 获取AI对话建议
 ```http
-GET /ai/suggestions?account_id=uuid
+GET /ai/suggestions
 ```
 
 **查询参数:**
-- `account_id`: 账本ID (可选)
+无需参数，返回通用建议列表
 
 **响应:**
 ```json
 {
-  "success": true,
-  "data": {
-    "suggestions": [
-      "查询我这个月的总收入和支出",
-      "分析我的餐饮支出趋势",
-      "查看我的资产分布情况",
-      "比较这个月和上个月的支出差异",
-      "查询我的信用卡账单明细"
-    ],
-    "categories": [
-      {
-        "name": "收支分析",
-        "suggestions": [
-          "查询我这个月的总支出",
-          "分析我的收入来源"
-        ]
-      },
-      {
-        "name": "趋势分析", 
-        "suggestions": [
-          "比较最近三个月的支出趋势",
-          "查看我的储蓄率变化"
-        ]
-      }
-    ]
-  }
+  "suggestions": [
+    "查询我这个月的总收入和支出",
+    "分析我的餐饮支出趋势",
+    "查看我的资产分布情况",
+    "比较这个月和上个月的支出差异",
+    "查询我的信用卡账单明细",
+    "统计我的资产总额",
+    "查看最近一周的交易记录",
+    "分析我的储蓄率变化",
+    "查询我的投资收益情况",
+    "比较不同分类的支出占比"
+  ]
 }
 ```
 
 ### 6.3 获取对话历史
 ```http
-GET /ai/conversations?page=1&size=20
+GET /ai/conversations?user_id=uuid&page=1&size=20&session_id=uuid
 ```
 
 **查询参数:**
+- `user_id`: 用户ID (必需)
 - `page`: 页码 (默认: 1)
 - `size`: 每页数量 (默认: 20)
-- `account_id`: 账本ID过滤 (可选)
+- `session_id`: 会话ID过滤 (可选)
 
 **响应:**
 ```json

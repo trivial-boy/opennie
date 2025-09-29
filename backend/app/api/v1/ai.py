@@ -90,22 +90,23 @@ async def get_ai_suggestions():
     summary="获取对话历史",
 )
 async def get_conversation_history(
+    user_id: UUID = Query(..., description="用户ID"),
     session_id: Optional[UUID] = Query(None, description="会话ID过滤"),
     page: int = Query(1, ge=1, description="页码"),
     size: int = Query(20, ge=1, le=100, description="每页数量"),
-    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    获取用户的AI对话历史记录
+    获取用户的AI对话历史记录（无需认证）
 
+    - **user_id**: 用户ID
     - **session_id**: 会话ID过滤（可选）
     - **page**: 页码
     - **size**: 每页数量
     """
     try:
         # 构建查询条件
-        conditions = [AIConversation.user_id == current_user.id]
+        conditions = [AIConversation.user_id == user_id]
 
         if session_id:
             conditions.append(AIConversation.session_id == session_id)
@@ -163,11 +164,11 @@ async def get_conversation_history(
     "/sessions", response_model=ResponseModel[List[dict]], summary="获取会话列表"
 )
 async def get_chat_sessions(
-    current_user: User = Depends(get_current_user),
+    user_id: UUID = Query(..., description="用户ID"),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    获取用户的所有AI对话会话
+    获取用户的所有AI对话会话（无需认证）
     """
     try:
         # 查询不同的session_id及其最新对话时间
@@ -176,14 +177,9 @@ async def get_chat_sessions(
                 AIConversation.session_id,
                 func.max(AIConversation.created_at).label("last_message_time"),
                 func.count(AIConversation.id).label("message_count"),
-                func.first_value(AIConversation.user_message)
-                .over(
-                    partition_by=AIConversation.session_id,
-                    order_by=AIConversation.created_at.asc(),
-                )
-                .label("first_message"),
+                func.min(AIConversation.user_message).label("first_message"),
             )
-            .where(AIConversation.user_id == current_user.id)
+            .where(AIConversation.user_id == user_id)
             .group_by(AIConversation.session_id)
             .order_by(desc(func.max(AIConversation.created_at)))
         )
@@ -220,17 +216,16 @@ async def get_chat_sessions(
 )
 async def delete_conversation(
     conversation_id: UUID,
-    current_user: User = Depends(get_current_user),
+    user_id: UUID = Query(..., description="用户ID"),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    删除指定的对话记录
+    删除指定的对话记录（无需认证）
     """
     try:
         # 查找对话记录
         stmt = select(AIConversation).where(
-            (AIConversation.id == conversation_id)
-            & (AIConversation.user_id == current_user.id)
+            (AIConversation.id == conversation_id) & (AIConversation.user_id == user_id)
         )
         result = await db.execute(stmt)
         conversation = result.scalar_one_or_none()
@@ -262,17 +257,17 @@ async def delete_conversation(
 )
 async def delete_session(
     session_id: UUID,
-    current_user: User = Depends(get_current_user),
+    user_id: UUID = Query(..., description="用户ID"),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    删除指定会话的所有对话记录
+    删除指定会话的所有对话记录（无需认证）
     """
     try:
         # 查找会话中的所有对话记录
         stmt = select(AIConversation).where(
             (AIConversation.session_id == session_id)
-            & (AIConversation.user_id == current_user.id)
+            & (AIConversation.user_id == user_id)
         )
         result = await db.execute(stmt)
         conversations = result.scalars().all()
